@@ -1,0 +1,51 @@
+<view class="quick-actions {{compact ? 'quick-actions--compact' : ''}}">
+  <view class="filter-gradient-zone">
+    <view class="housing-scroll">
+      <view class="housing-row">
+        <view wx:for="{{housingCategories}}" wx:key="text" class="housing-item">
+          <image class="entry-icon" src="{{item.icon}}" mode="aspectFit"></image>
+          <view class="housing-text">{{item.text}}</view>
+        </view>
+      </view>
+    </view>
+
+    <view class="match-card">
+      <view class="stay-tabs">
+        <view
+          wx:for="{{stayOptions}}"
+          wx:key="text"
+          class="stay-tab {{currentStayIndex === index ? 'stay-tab--active' : ''}}"
+          data-index="{{index}}"
+          bindtap="onStayTap"
+        >{{item.text}}</view>
+      </view>
+      <view class="match-fields">
+        <view class="field-row field-row--main">
+          <view class="field-placeholder">深圳市</view>
+          <view class="location-field">当前位置</view>
+        </view>
+        <view class="field-row">
+          <view class="field-placeholder">南山科技园 / 粤海街道 / 近地铁</view>
+          <view class="field-placeholder field-placeholder--right">2室1厅</view>
+        </view>
+        <view class="field-row field-row--faded">
+          <view>预算 2000-3500 · 朝南 · 可做饭</view>
+          <view>1-2人住</view>
+        </view>
+      </view>
+      <view class="match-actions">
+        <view class="match-action" bindtap="onFindTap">立即查找</view>
+        <view class="match-action match-action--strong" bindtap="onMatchTap">智能匹配</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="service-scroll">
+    <view class="service-row">
+      <view wx:for="{{services}}" wx:key="text" class="service-item">
+        <image class="entry-icon service-entry-icon" src="{{item.icon}}" mode="aspectFit"></image>
+        <view class="service-text">{{item.text}}</view>
+      </view>
+    </view>
+  </view>
+</view>

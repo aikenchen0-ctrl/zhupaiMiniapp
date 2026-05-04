@@ -1,7 +1,124 @@
-<!--index.wxml-->
-<navigation-bar title="Weixin" back="{{false}}" color="black" background="#FFF"></navigation-bar>
-<scroll-view class="scrollarea" scroll-y type="list">
-  <view class="container">
-    Weixin
+<view class="home-page">
+  <view class="top-fixed-area" style="padding-top: {{statusBarHeight}}px; height: calc({{statusBarHeight}}px + 72rpx);">
+    <view class="home-header">
+      <view class="search-icon" bindtap="onSearchTap"></view>
+      <scroll-view class="main-nav-scroll" scroll-x enhanced show-scrollbar="{{false}}">
+        <view class="main-nav">
+          <view
+            wx:for="{{mainNavs}}"
+            wx:key="key"
+            class="main-nav-item {{currentMainNav === index ? 'main-nav-item--active' : ''}}"
+            data-index="{{index}}"
+            bindtap="onMainNavTap"
+          >{{item.name}}</view>
+        </view>
+      </scroll-view>
+    </view>
   </view>
-</scroll-view>
+
+  <swiper
+    class="feed-swiper"
+    current="{{currentFeedIndex}}"
+    vertical
+    duration="260"
+    easing-function="easeOutCubic"
+    bindchange="onFeedChange"
+    bindtransition="onFeedTransition"
+    bindanimationfinish="onFeedAnimationFinish"
+  >
+    <swiper-item wx:for="{{feeds}}" wx:key="id">
+      <view class="feed-page {{currentFeedIndex === index ? 'feed-page--active' : ''}}">
+        <view wx:if="{{index === 0}}" class="hero-tool-panel {{heroToolsExpanded ? 'hero-tool-panel--expanded' : ''}}" style="top: calc({{statusBarHeight}}px + 88rpx);">
+          <quick-actions
+            housing-categories="{{housingCategories}}"
+            stay-options="{{stayOptions}}"
+            current-stay-index="{{currentStayIndex}}"
+            services="{{services}}"
+            compact="{{false}}"
+            bind:staychange="onStayChange"
+            bind:find="onFindTap"
+            bind:match="onMatchTap"
+          ></quick-actions>
+        </view>
+        <feed-card
+          feed="{{item}}"
+          is-active="{{currentFeedIndex === index}}"
+          blur-rpx="{{transitionBlurIndex === index ? transitionBlurRpx : 0}}"
+          show-tools-space="{{index === 0}}"
+          bind:like="onLikeFeed"
+          bind:comment="onOpenComments"
+        ></feed-card>
+      </view>
+    </swiper-item>
+  </swiper>
+
+  <view wx:if="{{!showToolsForCurrentFeed}}" class="feed-side-actions">
+    <view class="avatar-wrap">
+      <view class="avatar-head"></view>
+      <view class="avatar-body"></view>
+      <view class="avatar-badge"></view>
+    </view>
+    <view class="action-heart {{activeFeed.liked ? 'action-heart--liked' : ''}}" bindtap="onLikeActiveFeed"></view>
+    <view class="action-count">{{activeFeed.likeText}}</view>
+    <view class="action-chat" bindtap="onOpenActiveComments"></view>
+    <view class="action-count">{{activeFeed.commentText}}</view>
+    <view class="color-wheel"></view>
+    <view class="action-count">7099</view>
+  </view>
+
+  <view wx:if="{{!showToolsForCurrentFeed}}" class="feed-info-overlay">
+    <view class="author-line">@ {{activeFeed.author}} · {{activeFeed.location}}</view>
+    <view class="feed-title">{{activeFeed.title}}</view>
+    <view class="feed-desc">{{activeFeed.description}}</view>
+    <view class="feed-tags">{{activeFeed.tags}}</view>
+    <view class="price-line">
+      <text class="price-text">¥{{activeFeed.price}} {{activeFeed.rentType}}</text>
+      <text class="detail-link">{{activeFeed.linkText}} ></text>
+    </view>
+  </view>
+
+  <view wx:if="{{toastText}}" class="toast-message">{{toastText}}</view>
+
+  <view wx:if="{{showSearchPanel}}" class="search-mask" bindtap="closeSearchPanel"></view>
+  <view wx:if="{{showSearchPanel}}" class="search-panel">
+    <view class="search-title">模拟搜索住处</view>
+    <input class="search-input" value="{{searchKeyword}}" placeholder="输入城市、房源、地铁、关键词" bindinput="onKeywordInput" focus="{{true}}" />
+    <view class="search-result">推荐：深圳市 · 朝南卧室 · 近地铁 · {{stayOptions[currentStayIndex].text}}</view>
+    <view class="search-actions">
+      <view class="search-cancel" bindtap="closeSearchPanel">取消</view>
+      <view class="search-confirm" bindtap="confirmSearch">搜索</view>
+    </view>
+  </view>
+
+  <view wx:if="{{showCommentDrawer}}" class="comment-mask" bindtap="closeCommentDrawer"></view>
+  <view wx:if="{{showCommentDrawer}}" class="comment-drawer">
+    <view class="drawer-handle"></view>
+    <view class="drawer-title">评论 {{activeComments.length}}</view>
+    <scroll-view class="comment-list" scroll-y>
+      <view wx:for="{{activeComments}}" wx:key="text" class="comment-item">
+        <view class="comment-user">{{item.user}}</view>
+        <view class="comment-text">{{item.text}}</view>
+      </view>
+    </scroll-view>
+    <view class="comment-input-row">
+      <view class="comment-placeholder">说点什么...</view>
+      <view class="comment-send" bindtap="addMockComment">模拟评论</view>
+    </view>
+  </view>
+
+  <view wx:if="{{showPublishPanel}}" class="publish-mask" bindtap="closePublishPanel"></view>
+  <view wx:if="{{showPublishPanel}}" class="publish-panel">
+    <view class="publish-option">发图集</view>
+    <view class="publish-option">发视频</view>
+  </view>
+
+  <view class="bottom-tabbar">
+    <view class="tabbar-item tabbar-item--active">首页</view>
+    <view class="tabbar-item">同城</view>
+    <view class="publish-button {{showPublishPanel ? 'publish-button--active' : ''}}" bindtap="togglePublishPanel">
+      <view class="publish-ring"></view>
+    </view>
+    <view class="tabbar-item">消息</view>
+    <view class="tabbar-item">我的</view>
+  </view>
+</view>

@@ -1,5 +1,7 @@
 {
   "usingComponents": {
-    "navigation-bar": "/components/navigation-bar/navigation-bar"
+    "top-tabs": "/components/top-tabs/top-tabs",
+    "quick-actions": "/components/quick-actions/quick-actions",
+    "feed-card": "/components/feed-card/feed-card"
   }
 }

@@ -1,0 +1,239 @@
+.feed-card {
+  position: relative;
+  height: 100vh;
+  padding: 0;
+  color: #363636;
+  overflow: hidden;
+  background: #000000;
+}
+
+.feed-media {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  z-index: 1;
+  overflow: hidden;
+  background: #eee8dc;
+  transform: scale(1.012);
+  transform-origin: center center;
+  transition: filter 140ms ease-out;
+}
+
+.feed-video {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.room-sketch {
+  position: relative;
+  height: 100%;
+  border-top: 2rpx solid rgba(67, 67, 67, 0.46);
+  border-bottom: 2rpx solid rgba(67, 67, 67, 0.46);
+  background:
+    linear-gradient(90deg, transparent 0 48%, rgba(72, 72, 72, 0.32) 48.3% 48.8%, transparent 49.1%),
+    linear-gradient(14deg, transparent 0 64%, rgba(120, 120, 120, 0.14) 64.3% 65%, transparent 65.2%);
+  overflow: hidden;
+}
+
+.room-sketch--1 .bed-frame {
+  left: 202rpx;
+  top: 224rpx;
+}
+
+.room-sketch--1 .poster-frame {
+  left: 410rpx;
+}
+
+.room-sketch--2 .bed-frame {
+  left: 276rpx;
+  top: 248rpx;
+}
+
+.room-sketch--2 .window-frame {
+  left: 84rpx;
+  top: 72rpx;
+}
+
+.wall-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2rpx;
+  background: rgba(66, 66, 66, 0.28);
+}
+
+.wall-line--left {
+  left: 27%;
+  transform: skewY(-11deg);
+}
+
+.wall-line--middle {
+  left: 54%;
+}
+
+.wall-line--right {
+  right: 10%;
+  transform: skewY(6deg);
+}
+
+.window-frame {
+  position: absolute;
+  left: 58rpx;
+  top: 64rpx;
+  width: 140rpx;
+  height: 144rpx;
+  border: 2rpx solid rgba(80, 80, 80, 0.34);
+  transform: skewY(-11deg);
+}
+
+.window-frame view {
+  width: 100%;
+  height: 100%;
+  border-left: 2rpx solid rgba(80, 80, 80, 0.24);
+  border-top: 2rpx solid rgba(80, 80, 80, 0.18);
+  transform: translate(14rpx, 14rpx);
+}
+
+.poster-frame {
+  position: absolute;
+  left: 372rpx;
+  top: 54rpx;
+  width: 216rpx;
+  height: 58rpx;
+  border: 2rpx solid rgba(80, 80, 80, 0.18);
+  transform: skewY(10deg);
+  background: repeating-linear-gradient(-12deg, transparent 0 16rpx, rgba(80, 80, 80, 0.1) 17rpx 19rpx);
+}
+
+.door-frame {
+  position: absolute;
+  right: 34rpx;
+  top: 52rpx;
+  width: 72rpx;
+  height: 256rpx;
+  border: 2rpx solid rgba(80, 80, 80, 0.28);
+}
+
+.door-frame::after {
+  content: '';
+  position: absolute;
+  right: 12rpx;
+  top: 108rpx;
+  width: 8rpx;
+  height: 8rpx;
+  border-radius: 50%;
+  background: rgba(80, 80, 80, 0.42);
+}
+
+.bed-frame {
+  position: absolute;
+  left: 240rpx;
+  top: 238rpx;
+  width: 292rpx;
+  height: 146rpx;
+  border: 3rpx solid rgba(54, 54, 54, 0.4);
+  border-top-left-radius: 18rpx;
+  transform: skewY(-6deg);
+}
+
+.bed-frame::before {
+  content: '';
+  position: absolute;
+  left: -126rpx;
+  bottom: -72rpx;
+  width: 418rpx;
+  height: 88rpx;
+  border: 3rpx solid rgba(54, 54, 54, 0.4);
+  border-top: 0;
+  transform: skewY(12deg);
+}
+
+.pillow {
+  position: absolute;
+  right: 42rpx;
+  top: 24rpx;
+  width: 92rpx;
+  height: 42rpx;
+  border: 3rpx solid rgba(54, 54, 54, 0.32);
+  border-radius: 50%;
+}
+
+.blanket-line {
+  position: absolute;
+  left: 42rpx;
+  top: 88rpx;
+  width: 212rpx;
+  height: 3rpx;
+  background: rgba(54, 54, 54, 0.3);
+  transform: rotate(-9deg);
+}
+
+.clothes-rack {
+  position: absolute;
+  left: 82rpx;
+  bottom: 58rpx;
+  width: 122rpx;
+  height: 164rpx;
+  border-top: 4rpx solid rgba(54, 54, 54, 0.42);
+}
+
+.rack-leg {
+  position: absolute;
+  top: 0;
+  width: 3rpx;
+  height: 150rpx;
+  background: rgba(54, 54, 54, 0.34);
+}
+
+.rack-leg--left {
+  left: 0;
+  transform: rotate(7deg);
+}
+
+.rack-leg--right {
+  right: 0;
+  transform: rotate(-7deg);
+}
+
+.cloth-line {
+  position: absolute;
+  left: 9rpx;
+  top: 14rpx;
+  width: 104rpx;
+  height: 58rpx;
+  border-bottom: 3rpx solid rgba(54, 54, 54, 0.26);
+  background: repeating-linear-gradient(90deg, rgba(54, 54, 54, 0.18) 0 3rpx, transparent 4rpx 14rpx);
+}
+
+.callout {
+  position: absolute;
+  min-width: 154rpx;
+  height: 34rpx;
+  padding: 0 16rpx;
+  border: 2rpx solid rgba(83, 83, 83, 0.26);
+  border-radius: 999rpx;
+  color: #838383;
+  font-size: 18rpx;
+  line-height: 34rpx;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.56);
+}
+
+.callout--top {
+  right: 80rpx;
+  top: -42rpx;
+}
+
+.callout--left {
+  left: 150rpx;
+  bottom: -50rpx;
+}
+
+.callout--right {
+  right: 112rpx;
+  top: -66rpx;
+}
+

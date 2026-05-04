@@ -1,0 +1,41 @@
+<view class="feed-card {{showToolsSpace ? 'feed-card--with-tools' : ''}}">
+  <view class="feed-media" style="filter: blur({{blurRpx}}rpx);">
+    <video
+      wx:if="{{feed.mediaType === 'video'}}"
+      id="feed-video-{{feed.id}}"
+      class="feed-video"
+      style="filter: blur({{blurRpx}}rpx);"
+      src="{{feed.videoUrl}}"
+      poster="{{feed.poster}}"
+      autoplay="{{isActive}}"
+      loop
+      muted
+      controls="{{false}}"
+      show-center-play-btn="{{false}}"
+      show-play-btn="{{false}}"
+      show-fullscreen-btn="{{false}}"
+      enable-progress-gesture="{{false}}"
+      object-fit="cover"
+    ></video>
+    <view wx:else class="room-sketch room-sketch--{{feed.id % 3}}">
+      <view class="wall-line wall-line--left"></view>
+      <view class="wall-line wall-line--right"></view>
+      <view class="wall-line wall-line--middle"></view>
+      <view class="window-frame"><view></view></view>
+      <view class="poster-frame"></view>
+      <view class="door-frame"></view>
+      <view class="bed-frame">
+        <view class="pillow"></view>
+        <view class="blanket-line"></view>
+      </view>
+      <view class="clothes-rack">
+        <view class="rack-leg rack-leg--left"></view>
+        <view class="rack-leg rack-leg--right"></view>
+        <view class="cloth-line"></view>
+      </view>
+      <view class="callout callout--top">带全身镜31衣柜</view>
+      <view class="callout callout--left">重大利商铺出租实收</view>
+      <view class="callout callout--right">西玲茶坊</view>
+    </view>
+  </view>
+</view>

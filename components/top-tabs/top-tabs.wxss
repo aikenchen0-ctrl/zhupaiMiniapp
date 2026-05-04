@@ -1,0 +1,33 @@
+.top-tabs {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 34rpx;
+  height: 58rpx;
+  padding: 0 160rpx 0 84rpx;
+  box-sizing: border-box;
+}
+
+.top-tab {
+  position: relative;
+  color: #1f1f1f;
+  font-size: 29rpx;
+  line-height: 58rpx;
+  white-space: nowrap;
+}
+
+.top-tab--active {
+  font-weight: 700;
+}
+
+.top-tab--active::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 2rpx;
+  width: 38rpx;
+  height: 6rpx;
+  border-radius: 999rpx;
+  background: #111111;
+  transform: translateX(-50%);
+}

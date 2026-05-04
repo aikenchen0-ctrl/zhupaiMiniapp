@@ -1,0 +1,11 @@
+<view class="top-tabs">
+  <view
+    wx:for="{{tabs}}"
+    wx:key="key"
+    class="top-tab {{current === index ? 'top-tab--active' : ''}}"
+    data-index="{{index}}"
+    bindtap="onTap"
+  >
+    {{item.name}}
+  </view>
+</view>
