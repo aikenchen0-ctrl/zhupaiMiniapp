@@ -38,6 +38,19 @@ Page({
     activeFeedProgressPercent: 0,
     activeFeedProgressText: '0:00 / 0:00',
     feedProgressMap: {},
+    mealRedPacket: {
+      visible: false,
+      title: '',
+      countdownText: '00:01',
+      countdownChars: [
+        { value: '0', className: 'meal-count-digit' },
+        { value: '0', className: 'meal-count-digit' },
+        { value: ':', className: 'meal-count-colon' },
+        { value: '0', className: 'meal-count-digit' },
+        { value: '1', className: 'meal-count-digit' }
+      ],
+      flipClass: 'meal-count-digit--flip-a'
+    },
     cityTabText: '同城',
     showToolsForCurrentFeed: true,
     showPublishPanel: false,
@@ -88,8 +101,14 @@ Page({
     showCollectionEntry: false,
     showCollectionDrawer: false,
     commentDraft: '',
+    commentInputFocus: false,
     searchKeyword: '',
     matchKeyword: '',
+    currentHousingRankIndex: 0,
+    activeHousingRank: {},
+    activeHousingFeeds: [],
+    currentHousingFeedIndex: 0,
+    showHousingFullscreen: false,
     socialIcons: {
       user: ICONS.user,
       like: ICONS.like,
@@ -142,6 +161,19 @@ Page({
       { text: '休闲娱乐', type: 'play', icon: ICONS.cup },
       { text: '打车', type: 'taxi', icon: ICONS.car },
       { text: '火车票机票', type: 'train', icon: ICONS.plane }
+    ],
+    housingTools: [
+      { text: '押金宝', type: 'deposit', icon: ICONS.key },
+      { text: '地图找房', type: 'map', icon: ICONS.plane },
+      { text: '找房卡', type: 'card', icon: ICONS.hotel },
+      { text: '商铺办公', type: 'office', icon: ICONS.home },
+      { text: '转租', type: 'sublet', icon: ICONS.color }
+    ],
+    housingRankTabs: [
+      { key: 'recommend', name: '推荐', icon: ICONS.like, title: '为你推荐附近优质房源', desc: '根据住期、通勤和预算生成个性化找房线索' },
+      { key: 'score', name: '评分榜', icon: ICONS.like, title: '评分榜精选', desc: '优先展示高评分、低投诉、实看反馈稳定房源' },
+      { key: 'trust', name: '信任榜', icon: ICONS.user, title: '信任榜房源', desc: '偏向认证房东、自营和历史履约更稳定房源' },
+      { key: 'live', name: '直播榜', icon: ICONS.comment, title: '直播看房热榜', desc: '正在直播或近期热视频表现较好的房源' }
     ],
     feeds: [
       {
@@ -272,12 +304,57 @@ Page({
       statusBarHeight,
       windowHeight
     })
+    this.setData({
+      activeHousingRank: this.data.housingRankTabs[0],
+      activeHousingFeeds: this.getHousingFeedsByRank(this.data.housingRankTabs[0].key)
+    })
     this.requestUserDistrict()
+  },
+
+  onShow() {
+    this.startMealRedPacketTimer()
+  },
+
+  onHide() {
+    this.stopMealRedPacketTimer()
+  },
+
+  onUnload() {
+    this.stopMealRedPacketTimer()
+    clearTimeout(this.toastTimer)
+    clearTimeout(this.commentDrawerTimer)
   },
 
   onMainNavTap(event) {
     const { index } = event.currentTarget.dataset
     const name = this.data.mainNavs[index].name
+    const key = this.data.mainNavs[index].key
+    if (key === 'home') {
+      this.setData({
+        currentMainNav: index,
+        topNavLight: true,
+        topNavHidden: false,
+        showPublishPanel: false,
+        showCollectionDrawer: false,
+        showCommentDrawer: false,
+        showPlacePanel: false,
+        showSearchPanel: false,
+        showHousingFullscreen: false
+      })
+      return
+    }
+    if (key === 'match') {
+      this.setData({ currentMainNav: index }, () => {
+        this.updateActiveFeedState({
+          currentFeedIndex: this.data.currentFeedIndex,
+          matchToolsCollapsed: this.data.currentFeedIndex !== 0,
+          matchToolsOffsetRpx: this.data.currentFeedIndex !== 0 ? 760 : this.data.matchToolsOffsetRpx,
+          topNavLight: this.data.currentFeedIndex === 0 && !this.data.matchToolsCollapsed,
+          topNavHidden: this.data.currentFeedIndex !== 0 || this.data.matchToolsCollapsed
+        })
+      })
+      return
+    }
     this.setData({ currentMainNav: index })
     this.showToast(`${name}频道已切换`)
   },
@@ -415,10 +492,7 @@ Page({
       transitionBlurIndex: -1,
       transitionBlurRpx: 0
     })
-    this.matchToolsStartY = null
-    this.matchToolsStartOffsetRpx = 0
-    this.feedSwipeStartY = null
-    this.feedSwipeRestoringTools = false
+    this.clearFeedGestureState()
   },
 
   onFeedSwipeTouchStart(event) {
@@ -426,6 +500,7 @@ Page({
     const touch = event.touches && event.touches[0]
     if (!touch) return
     this.feedSwipeStartY = touch.clientY
+    this.feedSwipeStartOffsetRpx = this.data.matchToolsOffsetRpx || 760
     this.feedSwipeRestoringTools = false
   },
 
@@ -436,15 +511,23 @@ Page({
     if (!touch) return
     const deltaY = touch.clientY - this.feedSwipeStartY
     if (deltaY <= 12 && !this.feedSwipeRestoringTools) return
-    const offset = Math.max(0, Math.min(760, Math.round(760 - deltaY * 1.55)))
+    const startOffset = typeof this.feedSwipeStartOffsetRpx === 'number' ? this.feedSwipeStartOffsetRpx : 760
+    const offset = Math.max(0, Math.min(760, Math.round(startOffset - deltaY * 1.55)))
     const progress = Math.min(offset / 760, 1)
     this.feedSwipeRestoringTools = true
+    if (offset <= 0) {
+      this.feedSwipeRestoringTools = false
+      this.feedSwipeStartY = null
+      this.feedSwipeStartOffsetRpx = 760
+      this.matchToolsStartY = touch.clientY
+      this.matchToolsStartOffsetRpx = 0
+    }
     this.setData({
       matchToolsOffsetRpx: offset,
       matchToolsCollapsed: false,
       showToolsForCurrentFeed: true,
       showCollectionEntry: false,
-      feedTouchLocked: true,
+      feedTouchLocked: offset > 0,
       topNavLight: progress < 0.45,
       topNavHidden: progress >= 0.72,
       transitionBlurIndex: -1,
@@ -454,7 +537,7 @@ Page({
 
   onFeedSwipeTouchEnd() {
     if (!this.feedSwipeRestoringTools) {
-      this.feedSwipeStartY = null
+      this.clearFeedGestureState()
       return
     }
     const shouldExpand = this.data.matchToolsOffsetRpx <= 360
@@ -469,8 +552,7 @@ Page({
       transitionBlurIndex: -1,
       transitionBlurRpx: 0
     })
-    this.feedSwipeStartY = null
-    this.feedSwipeRestoringTools = false
+    this.clearFeedGestureState()
   },
 
   onFeedLockTouchStart(event) {
@@ -495,6 +577,14 @@ Page({
       return
     }
     this.onMatchToolsTouchEnd()
+  },
+
+  clearFeedGestureState() {
+    this.matchToolsStartY = null
+    this.matchToolsStartOffsetRpx = 0
+    this.feedSwipeStartY = null
+    this.feedSwipeStartOffsetRpx = 760
+    this.feedSwipeRestoringTools = false
   },
 
   onStayChange(event) {
@@ -527,14 +617,14 @@ Page({
 
   onFindTap() {
     const stay = this.data.stayOptions[this.data.currentStayIndex].text
-    const keyword = this.data.matchKeyword ? `：${this.data.matchKeyword}` : ''
-    this.showToast(`${stay}查找完成${keyword}`)
+    const keyword = this.data.matchKeyword || '深圳市'
+    wx.navigateTo({ url: `/pages/search-result/search-result?keyword=${encodeURIComponent(keyword)}&stay=${encodeURIComponent(stay)}&source=home_find` })
   },
 
   onMatchTap() {
     const stay = this.data.stayOptions[this.data.currentStayIndex].text
-    const keyword = this.data.matchKeyword ? `：${this.data.matchKeyword}` : ''
-    this.showToast(`${stay}智能匹配完成${keyword}`)
+    const keyword = this.data.matchKeyword || '深圳市'
+    wx.navigateTo({ url: `/pages/search-result/search-result?keyword=${encodeURIComponent(keyword)}&stay=${encodeURIComponent(stay)}&source=home_match` })
     this.updateActiveFeedState({
       currentFeedIndex: 0,
       matchToolsCollapsed: false,
@@ -546,6 +636,95 @@ Page({
       transitionBlurIndex: -1,
       transitionBlurRpx: 0
     })
+  },
+
+  onHousingToolTap(event) {
+    const type = event.currentTarget.dataset.type
+    if (type === 'map') {
+      wx.navigateTo({ url: '/pages/map-search/map-search' })
+      return
+    }
+    if (type === 'card') {
+      wx.navigateTo({ url: '/pages/commute-setting/commute-setting' })
+      return
+    }
+    const textMap = {
+      deposit: '押金宝服务已打开',
+      office: '商铺办公房源筛选中',
+      sublet: '转租入口已打开'
+    }
+    this.showToast(textMap[type] || '功能已打开')
+  },
+
+  onHousingSloganTap() {
+    this.showToast('已为你生成找房建议')
+  },
+
+  onHousingBonusTap() {
+    this.showToast('有奖免费住活动已打开')
+  },
+
+  onHousingRankTap(event) {
+    const currentHousingRankIndex = Number(event.currentTarget.dataset.index)
+    const activeHousingRank = this.data.housingRankTabs[currentHousingRankIndex]
+    this.setData({
+      currentHousingRankIndex,
+      activeHousingRank,
+      activeHousingFeeds: this.getHousingFeedsByRank(activeHousingRank.key)
+    })
+  },
+
+  onHousingVideoTap(event) {
+    const currentHousingFeedIndex = Number(event.currentTarget.dataset.index)
+    this.openHousingFullscreen(currentHousingFeedIndex)
+  },
+
+  openHousingFullscreen(currentHousingFeedIndex) {
+    const activeFeed = this.data.activeHousingFeeds[currentHousingFeedIndex] || this.data.activeHousingFeeds[0]
+    if (!activeFeed) return
+    const progressInfo = this.data.feedProgressMap[activeFeed.id] || {}
+    const activeMusicTitle = activeFeed.musicTitle || `${activeFeed.author || '用户'}的原声`
+    this.setData({
+      currentHousingFeedIndex,
+      activeFeed,
+      activeFeedId: activeFeed.id,
+      activeMusicTitle,
+      activeMusicScroll: activeMusicTitle.length > 16,
+      activeFeedProgressPercent: Math.round((progressInfo.progress || 0) * 1000) / 10,
+      activeFeedProgressText: this.formatVideoTimeText(progressInfo.currentTime || 0, progressInfo.duration || 0),
+      showHousingFullscreen: true,
+      showPublishPanel: false,
+      showCommentDrawer: false,
+      showCollectionDrawer: false,
+      showPlacePanel: false
+    })
+  },
+
+  closeHousingFullscreen() {
+    this.setData({
+      showHousingFullscreen: false,
+      showCommentDrawer: false,
+      showPlacePanel: false
+    })
+  },
+
+  onHousingFullscreenChange(event) {
+    const currentHousingFeedIndex = event.detail.current
+    this.openHousingFullscreen(currentHousingFeedIndex)
+  },
+
+  getHousingFeedsByRank(key, sourceFeeds) {
+    const feeds = (sourceFeeds || this.data.feeds || []).slice()
+    if (key === 'score') {
+      return feeds.sort((left, right) => right.commentCount - left.commentCount)
+    }
+    if (key === 'trust') {
+      return feeds.sort((left, right) => right.likeCount - left.likeCount)
+    }
+    if (key === 'live') {
+      return feeds.sort((left, right) => right.shareCount - left.shareCount)
+    }
+    return feeds
   },
 
   openCollectionDrawer() {
@@ -595,8 +774,15 @@ Page({
         likeText: this.formatCount(likeCount)
       }
     })
-    const activeFeed = feeds[this.data.currentFeedIndex] || {}
-    this.setData({ feeds, activeFeed })
+    const nextHousingFeeds = this.getHousingFeedsByRank(this.data.activeHousingRank.key, feeds)
+    const activeFeed = this.data.showHousingFullscreen
+      ? feeds.find((feed) => feed.id === this.data.activeFeed.id) || this.data.activeFeed
+      : feeds[this.data.currentFeedIndex] || {}
+    this.setData({
+      feeds,
+      activeFeed,
+      activeHousingFeeds: nextHousingFeeds
+    })
   },
 
   onOpenComments(event) {
@@ -629,6 +815,7 @@ Page({
     clearTimeout(this.commentDrawerTimer)
     this.setData({
       activeFeedId: id,
+      activeFeed: activeFeed || this.data.activeFeed,
       activeComments,
       commentTabs: this.data.commentTabs.map((tab, index) => ({
         ...tab,
@@ -636,12 +823,13 @@ Page({
       })),
       currentCommentTab: 0,
       commentDraft: '',
+      commentInputFocus: false,
       showCommentDrawer: true,
       commentDrawerVisible: false
     }, () => {
       setTimeout(() => {
         if (this.data.showCommentDrawer) {
-          this.setData({ commentDrawerVisible: true })
+          this.setData({ commentDrawerVisible: true, commentInputFocus: true })
         }
       }, 30)
     })
@@ -650,7 +838,7 @@ Page({
   closeCommentDrawer() {
     if (!this.data.showCommentDrawer) return
     clearTimeout(this.commentDrawerTimer)
-    this.setData({ commentDrawerVisible: false })
+    this.setData({ commentDrawerVisible: false, commentInputFocus: false })
     this.commentDrawerTimer = setTimeout(() => {
       this.setData({ showCommentDrawer: false })
     }, 260)
@@ -658,6 +846,14 @@ Page({
 
   onCommentDraftInput(event) {
     this.setData({ commentDraft: event.detail.value })
+  },
+
+  onCommentInputFocus() {
+    this.setData({ commentInputFocus: true })
+  },
+
+  onCommentInputBlur() {
+    this.setData({ commentInputFocus: false })
   },
 
   onCommentTabTap(event) {
@@ -698,7 +894,7 @@ Page({
   replyComment(event) {
     const comment = this.data.activeComments[event.currentTarget.dataset.index]
     if (!comment) return
-    this.setData({ commentDraft: `回复 ${comment.user}：` })
+    this.setData({ commentDraft: `回复 ${comment.user}：`, commentInputFocus: true })
   },
 
   toggleCommentLike(event) {
@@ -721,7 +917,13 @@ Page({
       if (feed.id !== this.data.activeFeedId) return feed
       return { ...feed, comments: activeComments }
     })
-    this.setData({ activeComments, feeds })
+    const activeFeed = feeds.find((feed) => feed.id === this.data.activeFeedId) || this.data.activeFeed
+    this.setData({
+      activeComments,
+      feeds,
+      activeFeed,
+      activeHousingFeeds: this.getHousingFeedsByRank(this.data.activeHousingRank.key, feeds)
+    })
   },
 
   openPlacePanel() {
@@ -761,16 +963,20 @@ Page({
       }
     })
     const activeFeed = feeds.find((feed) => feed.id === this.data.activeFeedId)
-    const currentActiveFeed = feeds[this.data.currentFeedIndex] || {}
+    const currentActiveFeed = this.data.showHousingFullscreen
+      ? feeds.find((feed) => feed.id === this.data.activeFeedId) || {}
+      : feeds[this.data.currentFeedIndex] || {}
     this.setData({
       feeds,
       activeFeed: currentActiveFeed,
+      activeHousingFeeds: this.getHousingFeedsByRank(this.data.activeHousingRank.key, feeds),
       activeComments: activeFeed ? activeFeed.comments : [],
       commentTabs: this.data.commentTabs.map((tab, index) => ({
         ...tab,
         count: index === 0 && activeFeed ? activeFeed.comments.length : tab.count
       })),
-      commentDraft: ''
+      commentDraft: '',
+      commentInputFocus: true
     })
   },
 
@@ -789,8 +995,14 @@ Page({
         shareText: this.formatCount(shareCount)
       }
     })
-    const activeFeed = feeds[this.data.currentFeedIndex] || {}
-    this.setData({ feeds, activeFeed })
+    const activeFeed = this.data.showHousingFullscreen
+      ? feeds.find((feed) => feed.id === this.data.activeFeed.id) || this.data.activeFeed
+      : feeds[this.data.currentFeedIndex] || {}
+    this.setData({
+      feeds,
+      activeFeed,
+      activeHousingFeeds: this.getHousingFeedsByRank(this.data.activeHousingRank.key, feeds)
+    })
   },
 
   onFollowActiveFeed() {
@@ -799,6 +1011,11 @@ Page({
 
   onColorToolTap() {
     this.showToast('已打开色彩匹配入口')
+  },
+
+  onMealRedPacketTap() {
+    const title = this.data.mealRedPacket.title || '餐食'
+    this.showToast(`${title}红包已打开`)
   },
 
   onShareAppMessage() {
@@ -848,6 +1065,90 @@ Page({
     this.toastTimer = setTimeout(() => {
       this.setData({ toastText: '' })
     }, 1600)
+  },
+
+  startMealRedPacketTimer() {
+    this.stopMealRedPacketTimer()
+    this.updateMealRedPacket()
+    this.mealRedPacketTimer = setInterval(() => {
+      this.updateMealRedPacket()
+    }, 1000)
+  },
+
+  stopMealRedPacketTimer() {
+    if (!this.mealRedPacketTimer) return
+    clearInterval(this.mealRedPacketTimer)
+    this.mealRedPacketTimer = null
+  },
+
+  updateMealRedPacket(now = new Date()) {
+    const period = this.getCurrentMealRedPacketPeriod(now)
+    if (!period) {
+      if (this.data.mealRedPacket.visible) {
+        this.setData({
+          mealRedPacket: {
+            ...this.data.mealRedPacket,
+            visible: false
+          }
+        })
+      }
+      return
+    }
+    const secondsInDay = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds()
+    const remainingSeconds = this.getMealRedPacketCountdownSeconds(period, secondsInDay)
+    const minutes = Math.floor(remainingSeconds / 60)
+    const seconds = remainingSeconds % 60
+    const countdownText = `${minutes < 10 ? '0' : ''}${minutes}:${seconds < 10 ? '0' : ''}${seconds}`
+    const currentPacket = this.data.mealRedPacket
+    const flipClass = this.data.mealRedPacket.flipClass === 'meal-count-digit--flip-a' ? 'meal-count-digit--flip-b' : 'meal-count-digit--flip-a'
+    const currentChars = currentPacket.countdownText === countdownText ? countdownText.split('') : (currentPacket.countdownText || '').split('')
+    const countdownChars = countdownText.split('').map((value, index) => {
+      if (value === ':') {
+        return { value, className: 'meal-count-colon' }
+      }
+      const changed = currentPacket.title !== period.title || currentChars[index] !== value
+      return {
+        value,
+        className: changed ? `meal-count-digit ${flipClass}` : 'meal-count-digit'
+      }
+    })
+    const nextPacket = {
+      visible: true,
+      title: period.title,
+      countdownText,
+      countdownChars,
+      flipClass
+    }
+    if (
+      currentPacket.visible === nextPacket.visible
+      && currentPacket.title === nextPacket.title
+      && currentPacket.countdownText === nextPacket.countdownText
+    ) return
+    this.setData({ mealRedPacket: nextPacket })
+  },
+
+  getMealRedPacketCountdownSeconds(period, secondsInDay) {
+    const maxDisplaySeconds = 5999
+    const cycleSeconds = 6000
+    const remainingToPeriodEnd = period.endSecond - secondsInDay
+    if (remainingToPeriodEnd <= 0) return 1
+    const periodDuration = period.endSecond - period.startSecond
+    if (periodDuration <= maxDisplaySeconds) {
+      return Math.max(1, Math.min(maxDisplaySeconds, remainingToPeriodEnd))
+    }
+    const elapsedSeconds = Math.max(0, secondsInDay - period.startSecond)
+    const cycleRemainingSeconds = maxDisplaySeconds - (elapsedSeconds % cycleSeconds)
+    return Math.max(1, Math.min(maxDisplaySeconds, cycleRemainingSeconds, remainingToPeriodEnd))
+  },
+
+  getCurrentMealRedPacketPeriod(now) {
+    const secondsInDay = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds()
+    const periods = [
+      { title: '早餐', startSecond: 6 * 3600, endSecond: 10 * 3600 },
+      { title: '午餐', startSecond: 10 * 3600, endSecond: 14 * 3600 },
+      { title: '晚餐', startSecond: 16 * 3600 + 30 * 60, endSecond: 21 * 3600 }
+    ]
+    return periods.find((period) => secondsInDay >= period.startSecond && secondsInDay < period.endSecond)
   },
 
   formatCount(count) {

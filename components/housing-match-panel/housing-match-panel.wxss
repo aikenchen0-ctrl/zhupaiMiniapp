@@ -111,39 +111,44 @@
 }
 
 .city-name {
+  display: flex;
+  align-items: center;
+  min-width: 0;
   color: #2f2a22;
   font-size: 30rpx;
   font-weight: 800;
   line-height: 38rpx;
 }
 
-.city-name::after {
-  content: '';
-  display: inline-block;
+.city-arrow {
+  flex: none;
+  width: 0;
+  height: 0;
   margin-left: 8rpx;
   border-left: 7rpx solid transparent;
   border-right: 7rpx solid transparent;
   border-top: 8rpx solid #8d8372;
-  vertical-align: 4rpx;
 }
 
 .location-text {
+  flex: none;
+  display: flex;
+  align-items: center;
   color: #5d5549;
   font-size: 22rpx;
   font-weight: 700;
+  line-height: 30rpx;
   white-space: nowrap;
 }
 
-.location-text::before {
-  content: '';
-  display: inline-block;
+.location-dot {
+  flex: none;
   width: 17rpx;
   height: 17rpx;
   margin-right: 7rpx;
   border: 3rpx solid #8b8172;
   border-radius: 50%;
   box-sizing: border-box;
-  vertical-align: -2rpx;
 }
 
 .meta-row {

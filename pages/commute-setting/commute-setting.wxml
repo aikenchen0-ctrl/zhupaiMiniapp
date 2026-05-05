@@ -1,0 +1,157 @@
+<view class="house-card-page">
+  <view
+    class="card-top"
+    style="top: {{menuTop}}px; height: {{menuHeight}}px; padding-right: {{menuRightGap}}px;"
+  >
+    <view class="back-button" bindtap="goBack"></view>
+    <view class="step-track">
+      <view
+        wx:for="{{stepItems}}"
+        wx:key="value"
+        class="step-item {{currentStep === item.value ? 'step-item--active' : ''}} {{currentStep > item.value ? 'step-item--done' : ''}}"
+        data-step="{{item.value}}"
+        bindtap="onStepTap"
+      >{{item.text}}</view>
+    </view>
+  </view>
+
+  <view class="question-area" style="padding-top: calc({{menuTop}}px + {{menuHeight}}px + 72rpx);">
+    <view wx:if="{{currentStep === 1}}" class="question-title">什么时候要入住呢?</view>
+    <view wx:if="{{currentStep === 2}}" class="question-title">用什么交通方式通勤?</view>
+    <view wx:if="{{currentStep === 3}}" class="question-title">您每天从哪里通勤?</view>
+    <view wx:if="{{currentStep === 4}}" class="question-title">您希望住月租金多少价位?</view>
+    <view wx:if="{{currentStep === 5}}" class="question-title">您希望住在什么设施附近?</view>
+    <view class="question-subtitle">按顺序完成找房卡，系统会据此生成更贴合的推荐。</view>
+  </view>
+
+  <view wx:if="{{currentStep === 1}}" class="step-panel step-panel--calendar">
+    <view class="month-switch">
+      <view class="month-switch-button" data-delta="-1" bindtap="onMonthSwitch">上一月</view>
+      <view class="month-title">{{selectedMonth}}月 {{selectedYear}}</view>
+      <view class="month-switch-button" data-delta="1" bindtap="onMonthSwitch">下一月</view>
+    </view>
+    <view class="weekday-row">
+      <view wx:for="{{weekLabels}}" wx:key="*this">{{item}}</view>
+    </view>
+    <view class="calendar-grid">
+      <view
+        wx:for="{{calendarDays}}"
+        wx:key="key"
+        class="calendar-day {{item.empty ? 'calendar-day--empty' : ''}} {{item.active ? 'calendar-day--active' : ''}}"
+        data-day="{{item.day}}"
+        bindtap="onCalendarDayTap"
+      >{{item.day}}</view>
+    </view>
+    <view class="selected-date-text">{{selectedMonth}}月{{selectedDay}}日 {{selectedYear}}</view>
+  </view>
+
+  <view wx:if="{{currentStep === 2}}" class="step-panel step-panel--transport">
+    <view
+      wx:for="{{transportOptions}}"
+      wx:key="key"
+      class="transport-card {{selectedTransport === item.key ? 'transport-card--active' : ''}}"
+      data-key="{{item.key}}"
+      bindtap="onTransportTap"
+    >
+      <view class="transport-icon transport-icon--{{item.icon}}"></view>
+      <view class="transport-name">{{item.name}}</view>
+    </view>
+  </view>
+
+  <view wx:if="{{currentStep === 3}}" class="step-panel step-panel--map">
+    <view class="map-sketch">
+      <view class="road road--one"></view>
+      <view class="road road--two"></view>
+      <view class="road road--three"></view>
+      <view class="block block--one"></view>
+      <view class="block block--two"></view>
+    </view>
+    <view class="address-card">
+      <view class="address-title">您每天从哪里通勤?</view>
+      <view class="address-input-row">
+        <view class="address-search-icon"></view>
+        <input
+          class="address-input"
+          value="{{commuteAddress}}"
+          placeholder="请输入工作地点、小区或地铁站"
+          placeholder-class="input-placeholder"
+          bindinput="onAddressInput"
+        />
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{currentStep === 4}}" class="step-panel step-panel--budget">
+    <view class="budget-columns">
+      <view class="budget-column">
+        <view
+          wx:for="{{minBudgetOptions}}"
+          wx:key="value"
+          class="budget-item {{budgetMin === item.value ? 'budget-item--active' : ''}}"
+          data-type="min"
+          data-value="{{item.value}}"
+          bindtap="onBudgetTap"
+        >{{item.text}}</view>
+      </view>
+      <view class="budget-divider">到</view>
+      <view class="budget-column">
+        <view
+          wx:for="{{maxBudgetOptions}}"
+          wx:key="value"
+          class="budget-item {{budgetMax === item.value ? 'budget-item--active' : ''}}"
+          data-type="max"
+          data-value="{{item.value}}"
+          bindtap="onBudgetTap"
+        >{{item.text}}</view>
+      </view>
+    </view>
+    <view class="budget-active-line">
+      <text>{{budgetMin}}</text>
+      <text>到</text>
+      <text>{{budgetMax}}</text>
+    </view>
+  </view>
+
+  <view wx:if="{{currentStep === 5}}" class="step-panel step-panel--preference">
+    <view class="preference-search">
+      <view class="address-search-icon"></view>
+      <text>输入设施、商圈或地标</text>
+    </view>
+    <view class="preference-grid">
+      <view
+        wx:for="{{preferenceOptions}}"
+        wx:key="key"
+        class="preference-item {{selectedPreferenceMap[item.key] ? 'preference-item--active' : ''}}"
+        data-key="{{item.key}}"
+        bindtap="onPreferenceTap"
+      >
+        <view class="preference-check"></view>
+        <view class="preference-icon preference-icon--{{item.icon}}"></view>
+        <view>{{item.name}}</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="bottom-action">
+    <view class="next-button" bindtap="nextStep">{{currentStep === totalSteps ? '确认' : '下一步'}}</view>
+  </view>
+
+  <view wx:if="{{showRealNameModal}}" class="realname-mask" bindtap="closeRealNameModal"></view>
+  <view wx:if="{{showRealNameModal}}" class="realname-modal">
+    <view class="realname-title">您的找房卡就差最后一步!</view>
+    <view class="realname-row">
+      <text>真实姓名</text>
+      <input value="{{realNameForm.name}}" data-field="name" bindinput="onRealNameInput" />
+    </view>
+    <view class="realname-row">
+      <text>身份证号</text>
+      <input value="{{realNameForm.idNumber}}" data-field="idNumber" bindinput="onRealNameInput" />
+    </view>
+    <view class="realname-actions">
+      <view bindtap="closeRealNameModal">不要实名认证</view>
+      <view bindtap="submitRealName">实名认证</view>
+    </view>
+  </view>
+
+  <view wx:if="{{toastText}}" class="toast-message">{{toastText}}</view>
+</view>
