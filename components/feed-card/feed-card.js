@@ -1,4 +1,8 @@
 Component({
+  data: {
+    userPaused: false
+  },
+
   properties: {
     feed: {
       type: Object,
@@ -37,8 +41,11 @@ Component({
 
     syncVideoState(active) {
       clearTimeout(this.videoTimer)
+      if (!active && this.data.userPaused) {
+        this.setData({ userPaused: false })
+      }
       this.videoTimer = setTimeout(() => {
-        if (active) {
+        if (active && !this.data.userPaused) {
           this.playVideo()
         } else {
           this.pauseVideo()
@@ -60,12 +67,36 @@ Component({
       }
     },
 
+    togglePlayback() {
+      if (!this.data.isActive || !this.data.feed || this.data.feed.mediaType !== 'video') return
+
+      const nextUserPaused = !this.data.userPaused
+      this.setData({ userPaused: nextUserPaused })
+
+      if (nextUserPaused) {
+        this.pauseVideo()
+      } else {
+        this.playVideo()
+      }
+    },
+
     onLikeTap() {
       this.triggerEvent('like', { id: this.data.feed.id })
     },
 
     onCommentTap() {
       this.triggerEvent('comment', { id: this.data.feed.id })
+    },
+
+    onVideoTimeUpdate(event) {
+      const { currentTime = 0, duration = 0 } = event.detail || {}
+      const progress = duration > 0 ? Math.min(currentTime / duration, 1) : 0
+      this.triggerEvent('progress', {
+        id: this.data.feed.id,
+        currentTime,
+        duration,
+        progress
+      })
     }
   }
 })

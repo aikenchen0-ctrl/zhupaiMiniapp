@@ -1,0 +1,120 @@
+<view class="search-page">
+  <view class="search-shell" style="padding-top: {{statusBarHeight}}px;">
+    <view class="top-bar" style="padding-right: {{menuSafeRight}}px;">
+      <view class="back-button" bindtap="goBack"></view>
+      <view class="top-center">
+        <view class="page-title" bindtap="onHouseCardEntryTap">
+          <view class="map-icon">
+            <view></view>
+            <view></view>
+            <view></view>
+          </view>
+          <text>{{pageTitle}}</text>
+        </view>
+        <view class="scan-button" catchtap="onScanTap">
+          <view class="scan-icon"></view>
+          <text>扫一扫</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="search-row">
+      <view class="search-mark"></view>
+      <input
+        class="search-input"
+        value="{{keyword}}"
+        placeholder="搜索"
+        placeholder-class="search-placeholder"
+        confirm-type="search"
+        bindinput="onKeywordInput"
+        bindconfirm="submitSearch"
+      />
+      <view class="search-submit" bindtap="submitSearch">搜索</view>
+    </view>
+
+    <view class="history-list">
+      <view wx:for="{{searchHistory}}" wx:key="*this" class="history-item">
+        <text bindtap="useHistory" data-text="{{item}}">{{item}}</text>
+        <view class="history-remove" catchtap="removeHistory" data-text="{{item}}">×</view>
+      </view>
+    </view>
+
+    <view class="history-filter" bindtap="toggleHistoryPanel">
+      <image class="history-filter-icon" src="{{historyFilterIcon}}" mode="aspectFit"></image>
+      <text>{{showAllHistory ? '收起搜索记录' : '全部搜索记录'}}</text>
+      <text class="filter-arrow {{showAllHistory ? 'filter-arrow--open' : ''}}">⌄</text>
+    </view>
+
+    <view wx:if="{{showAllHistory}}" class="history-panel">
+      <view wx:for="{{allSearchHistory}}" wx:key="*this" class="history-chip" bindtap="useHistory" data-text="{{item}}">{{item}}</view>
+    </view>
+
+    <view class="match-card">
+      <view class="stay-tabs">
+        <view
+          wx:for="{{stayOptions}}"
+          wx:key="text"
+          class="stay-tab {{currentStayIndex === index ? 'stay-tab--active' : ''}}"
+          data-index="{{index}}"
+          bindtap="onStayTap"
+        >{{item.text}}</view>
+      </view>
+
+      <view class="match-body">
+        <view class="match-line match-line--first">
+          <view class="city-name">深圳市</view>
+          <view class="location-action" bindtap="useCurrentLocation">
+            <view class="location-icon"></view>
+            <text>当前位置</text>
+          </view>
+        </view>
+        <view class="match-line">
+          <input
+            class="area-input"
+            value="{{areaKeyword}}"
+            placeholder="{{activeStay.keywordPlaceholder}}"
+            placeholder-class="area-placeholder"
+            bindinput="onAreaInput"
+          />
+          <view class="people-text">1人入住</view>
+        </view>
+        <view class="tag-row">
+          <view wx:for="{{activeStay.tags}}" wx:key="*this" class="match-tag" bindtap="toggleTag" data-text="{{item}}">{{item}}</view>
+        </view>
+        <view class="action-row">
+          <view class="match-action match-action--outline" bindtap="onFindTap">立即查找</view>
+          <view class="match-action match-action--solid" bindtap="onSmartMatch">智能匹配</view>
+        </view>
+      </view>
+    </view>
+
+    <view class="rank-tabs">
+      <view
+        wx:for="{{rankTabs}}"
+        wx:key="key"
+        class="rank-tab {{currentRankIndex === index ? 'rank-tab--active' : ''}}"
+        data-index="{{index}}"
+        bindtap="onRankTabTap"
+      >{{item.name}}</view>
+    </view>
+
+    <swiper
+      class="rank-swiper"
+      current="{{currentRankIndex}}"
+      duration="260"
+      bindchange="onRankSwiperChange"
+    >
+      <swiper-item wx:for="{{rankTabs}}" wx:key="key">
+        <scroll-view class="rank-list" scroll-y enhanced show-scrollbar="{{false}}">
+          <view wx:for="{{rankings[item.key]}}" wx:key="title" class="rank-item">
+            <view class="rank-index rank-index--{{index + 1}}">{{index + 1}}</view>
+            <view class="rank-title">{{item.title}}</view>
+            <view class="rank-heat">{{item.heat}}</view>
+          </view>
+        </scroll-view>
+      </swiper-item>
+    </swiper>
+  </view>
+
+  <view wx:if="{{toastText}}" class="toast-message">{{toastText}}</view>
+</view>

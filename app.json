@@ -1,6 +1,8 @@
 {
   "pages": [
-    "pages/index/index"
+    "pages/index/index",
+    "pages/search/search",
+    "pages/map-search/map-search"
   ],
   "window": {
     "navigationBarTextStyle": "black",
@@ -19,6 +21,11 @@
     }
   },
   "componentFramework": "glass-easel",
+  "permission": {
+    "scope.userLocation": {
+      "desc": "用于显示当前所在区域"
+    }
+  },
   "sitemapLocation": "sitemap.json",
   "lazyCodeLoading": "requiredComponents"
 }

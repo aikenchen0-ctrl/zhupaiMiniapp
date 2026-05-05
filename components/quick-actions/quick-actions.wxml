@@ -24,13 +24,16 @@
           <view class="field-placeholder">深圳市</view>
           <view class="location-field">当前位置</view>
         </view>
-        <view class="field-row">
-          <view class="field-placeholder">南山科技园 / 粤海街道 / 近地铁</view>
-          <view class="field-placeholder field-placeholder--right">2室1厅</view>
+        <view class="field-row field-row--period">
+          <view class="field-placeholder">{{activeStay.periodText}}</view>
+          <view class="field-placeholder field-placeholder--right">{{activeStay.peopleText}}</view>
         </view>
-        <view class="field-row field-row--faded">
-          <view>预算 2000-3500 · 朝南 · 可做饭</view>
-          <view>1-2人住</view>
+        <view class="keyword-field">
+          <view class="keyword-placeholder">{{activeStay.keywordPlaceholder}}</view>
+          <view class="keyword-icon"></view>
+        </view>
+        <view class="tag-row">
+          <view wx:for="{{activeStay.tags}}" wx:key="*this" class="match-tag">{{item}}</view>
         </view>
       </view>
       <view class="match-actions">

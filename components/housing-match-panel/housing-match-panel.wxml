@@ -1,0 +1,57 @@
+<view class="housing-match-panel">
+  <view class="housing-row">
+    <view wx:for="{{housingCategories}}" wx:key="text" class="housing-item">
+      <image class="housing-icon" src="{{item.icon}}" mode="aspectFit"></image>
+      <view class="housing-label">{{item.text}}</view>
+    </view>
+  </view>
+
+  <view class="match-card">
+    <view class="stay-tabs">
+      <view
+        wx:for="{{stayOptions}}"
+        wx:key="text"
+        class="stay-tab {{currentStayIndex === index ? 'stay-tab--active' : ''}}"
+        data-index="{{index}}"
+        bindtap="onStayTap"
+      >{{item.text}}</view>
+    </view>
+
+    <view class="match-body">
+      <view class="city-row">
+        <view class="city-name">深圳市</view>
+        <view class="location-text">当前位置</view>
+      </view>
+
+      <view class="meta-row">
+        <view class="period-text">{{activeStay.periodText}}</view>
+        <view class="people-text">{{activeStay.peopleText}}</view>
+      </view>
+
+      <view class="search-row">
+        <view class="search-mark"></view>
+        <input
+          class="match-input"
+          value="{{keyword}}"
+          placeholder="{{activeStay.keywordPlaceholder}}"
+          placeholder-class="match-input-placeholder"
+          confirm-type="search"
+          bindinput="onKeywordInput"
+        />
+        <view class="room-count">
+          <view class="room-icon"></view>
+          <view>房客人数</view>
+        </view>
+      </view>
+
+      <view class="tag-row">
+        <view wx:for="{{activeStay.tags}}" wx:key="*this" class="match-tag">{{item}}</view>
+      </view>
+
+      <view class="action-row">
+        <view class="match-action match-action--outline" bindtap="onFindTap">立即查找</view>
+        <view class="match-action match-action--solid" bindtap="onMatchTap">智能匹配</view>
+      </view>
+    </view>
+  </view>
+</view>

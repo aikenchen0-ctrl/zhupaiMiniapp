@@ -16,6 +16,8 @@
       show-fullscreen-btn="{{false}}"
       enable-progress-gesture="{{false}}"
       object-fit="cover"
+      bindtap="togglePlayback"
+      bindtimeupdate="onVideoTimeUpdate"
     ></video>
     <view wx:else class="room-sketch room-sketch--{{feed.id % 3}}">
       <view class="wall-line wall-line--left"></view>
@@ -36,6 +38,13 @@
       <view class="callout callout--top">带全身镜31衣柜</view>
       <view class="callout callout--left">重大利商铺出租实收</view>
       <view class="callout callout--right">西玲茶坊</view>
+    </view>
+    <view
+      wx:if="{{feed.mediaType === 'video' && isActive && userPaused}}"
+      class="center-play-button"
+      catchtap="togglePlayback"
+    >
+      <view class="center-play-triangle"></view>
     </view>
   </view>
 </view>
