@@ -1,0 +1,247 @@
+<view class="publish-page {{selectedIdentity === 'roommate' ? 'publish-page--roommate' : ''}}">
+  <view class="publish-header" style="padding-top: {{statusBarHeight}}px;">
+    <view class="header-inner">
+      <view class="header-action header-back" bindtap="goBack"></view>
+      <view class="header-title">发布房源</view>
+      <view class="header-action header-more">
+        <view></view>
+        <view></view>
+        <view></view>
+      </view>
+    </view>
+  </view>
+
+  <scroll-view class="publish-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+    <view class="content-section content-section--first">
+      <view class="section-title">您的房源类型是？</view>
+      <view class="type-grid">
+        <view
+          wx:for="{{propertyTypes}}"
+          wx:key="key"
+          class="type-card {{selectedType === item.key ? 'type-card--active' : ''}}"
+          data-key="{{item.key}}"
+          bindtap="selectType"
+        >
+          <view class="type-icon type-icon--{{item.key}}">
+            <view></view>
+            <view></view>
+            <view></view>
+          </view>
+          <view class="type-title">{{item.title}}</view>
+          <view class="type-desc">{{item.desc}}</view>
+        </view>
+      </view>
+    </view>
+
+    <view class="content-section">
+      <view class="section-title">您的身份是？</view>
+      <view class="identity-grid">
+        <view
+          wx:for="{{identities}}"
+          wx:key="key"
+          class="identity-item {{selectedIdentity === item.key ? 'identity-item--active' : ''}}"
+          data-key="{{item.key}}"
+          bindtap="selectIdentity"
+        >{{item.text}}</view>
+      </view>
+    </view>
+
+    <view wx:if="{{selectedIdentity !== 'roommate'}}" class="homestay-row" bindtap="toggleHomestay">
+      <view class="homestay-text">是否开启民宿模式 <text>（可按天出租）</text></view>
+      <view class="switch-track {{homestayEnabled ? 'switch-track--active' : ''}}">
+        <view class="switch-thumb">
+          <text wx:if="{{!homestayEnabled}}">×</text>
+          <text wx:else>✓</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="content-section address-section">
+      <view class="section-title">房源地址在哪呢？</view>
+      <view class="form-list">
+        <view class="form-row" bindtap="chooseCity">
+          <view class="form-label">所在城市</view>
+          <view class="form-value form-value--text">{{form.city}}</view>
+          <view class="row-arrow">›</view>
+        </view>
+        <view class="form-row">
+          <view class="form-label">所在小区</view>
+          <input class="form-input" value="{{form.community}}" data-field="community" placeholder="请输入小区名称" placeholder-class="input-placeholder" bindinput="onInput" />
+          <view class="row-arrow">›</view>
+        </view>
+        <view class="form-row">
+          <view class="form-label">具体地址</view>
+          <input class="form-input" value="{{form.address}}" data-field="address" placeholder="请输入楼栋单元/门牌号" placeholder-class="input-placeholder" bindinput="onInput" />
+          <view class="row-arrow">›</view>
+        </view>
+        <view class="form-row">
+          <view class="form-label">期望租金</view>
+          <input class="form-input" value="{{form.rent}}" data-field="rent" type="number" placeholder="请输入期望租金" placeholder-class="input-placeholder" bindinput="onInput" />
+          <view class="unit-text">元/月</view>
+        </view>
+
+        <view wx:if="{{selectedIdentity === 'agent'}}" class="tenant-fee-section">
+          <view class="tenant-fee-toggle" bindtap="toggleTenantFee">
+            <view class="tenant-fee-title">开启向租客收取中介费</view>
+            <view class="fee-switch {{tenantFeeEnabled ? 'fee-switch--active' : ''}}">
+              <view class="fee-switch-thumb">
+                <text wx:if="{{tenantFeeEnabled}}">✓</text>
+              </view>
+            </view>
+          </view>
+
+          <view wx:if="{{tenantFeeEnabled}}" class="tenant-fee-panel">
+            <view class="fee-input-row">
+              <view class="fee-input-label">中介费</view>
+              <view class="fee-input-control">
+                <input class="fee-input" value="{{tenantFeeAmount}}" type="number" placeholder="请输入" placeholder-class="input-placeholder" bindinput="onTenantFeeInput" />
+                <view class="fee-unit">元</view>
+              </view>
+            </view>
+            <view class="fee-percent-box">
+              <view class="fee-percent-row">
+                <view>约为月租金额的</view>
+                <view class="fee-percent-value">{{tenantFeePercent}}%</view>
+              </view>
+              <view class="fee-progress" aria-label="中介费占月租比例">
+                <view class="fee-progress-fill" style="width: {{tenantFeePercent}}%;"></view>
+                <view class="fee-progress-dot" style="left: {{tenantFeePercent}}%;"></view>
+              </view>
+              <view class="fee-scale-row">
+                <view>0%</view>
+                <view>100%</view>
+              </view>
+            </view>
+          </view>
+
+          <view wx:if="{{tenantFeeEnabled}}" class="fee-tip-card">
+            <view class="fee-tip-icon">i</view>
+            <view class="fee-tip-text">
+              <view><text class="fee-tip-strong">81%</text> 的同行向房东而不对租客收取中介费。</view>
+              <view>建议由房东支付中介费，若对租客收取，建议不要超过 <text class="fee-tip-strong">1250 元</text>（月租金额的 25%）。</view>
+            </view>
+          </view>
+        </view>
+        <view wx:if="{{selectedIdentity !== 'agent' && selectedIdentity !== 'sublet' && selectedIdentity !== 'roommate' && selectedIdentity !== 'owner'}}" class="form-row">
+          <view class="form-label">机构名称</view>
+          <input class="form-input" value="{{form.agencyName}}" data-field="agencyName" placeholder="请输入机构名称" placeholder-class="input-placeholder" bindinput="onInput" />
+          <view class="row-arrow">›</view>
+        </view>
+        <view wx:if="{{selectedIdentity !== 'agent' && selectedIdentity !== 'sublet' && selectedIdentity !== 'roommate' && selectedIdentity !== 'owner'}}" class="form-row">
+          <view class="form-label">负责人</view>
+          <input class="form-input" value="{{form.manager}}" data-field="manager" placeholder="请输入负责人姓名" placeholder-class="input-placeholder" bindinput="onInput" />
+          <view class="row-arrow">›</view>
+        </view>
+        <view wx:if="{{selectedIdentity !== 'agent' && selectedIdentity !== 'sublet' && selectedIdentity !== 'roommate' && selectedIdentity !== 'owner'}}" class="form-row">
+          <view class="form-label">联系电话</view>
+          <input class="form-input" value="{{form.phone}}" data-field="phone" type="number" placeholder="请输入负责人电话" placeholder-class="input-placeholder" bindinput="onInput" />
+          <view class="row-arrow">›</view>
+        </view>
+      </view>
+    </view>
+
+    <view wx:if="{{selectedIdentity === 'roommate'}}" class="roommate-profile-section">
+      <view class="roommate-field">
+        <view class="roommate-section-title">室友其它要求（选填）</view>
+        <textarea
+          class="roommate-textarea"
+          value="{{roommateRequirement}}"
+          maxlength="300"
+          placeholder="说说你对室友的其他期待吧..."
+          placeholder-class="input-placeholder"
+          bindinput="onRoommateRequirementInput"
+        />
+      </view>
+
+      <view class="roommate-tags-section">
+        <view class="roommate-title-row">
+          <view class="roommate-section-title">标签墙</view>
+          <view class="roommate-hint-icon">i</view>
+        </view>
+        <view class="roommate-subtitle">丰富的标签能遇见更合拍的室友哦</view>
+
+        <scroll-view class="roommate-tabs" scroll-x enhanced show-scrollbar="{{false}}">
+          <view class="roommate-tab-list">
+            <view
+              wx:for="{{roommateTagTabs}}"
+              wx:key="key"
+              class="roommate-tab {{roommateActiveTag === item.key ? 'roommate-tab--active' : ''}}"
+              data-key="{{item.key}}"
+              bindtap="switchRoommateTag"
+            >{{item.text}}</view>
+          </view>
+        </scroll-view>
+
+        <view class="roommate-tag-list">
+          <view
+            wx:for="{{roommateVisibleTags}}"
+            wx:key="text"
+            class="roommate-tag {{item.selected ? 'roommate-tag--active' : ''}}"
+            data-text="{{item.text}}"
+            bindtap="toggleRoommateTag"
+          >{{item.text}}</view>
+        </view>
+      </view>
+
+      <view class="roommate-intro-section">
+        <view class="roommate-section-title">自我介绍一下或者发一些你喜欢的美好事物（选填）</view>
+        <view class="roommate-upload-grid">
+          <view class="roommate-upload-card {{roommateIntroMedia.length ? 'roommate-upload-card--filled' : ''}}" bindtap="chooseRoommateIntroMedia">
+            <view class="roommate-upload-icon roommate-upload-icon--plus">
+              <view></view>
+              <view></view>
+            </view>
+            <view class="roommate-upload-text">添加照片/视频</view>
+            <view wx:if="{{roommateIntroMedia.length}}" class="roommate-upload-count">已选择{{roommateIntroMedia.length}}项</view>
+          </view>
+          <view class="roommate-upload-card {{roommateGallery.length ? 'roommate-upload-card--filled' : ''}}" bindtap="chooseRoommateGallery">
+            <view class="roommate-upload-icon roommate-upload-icon--gallery">
+              <view></view>
+              <view></view>
+            </view>
+            <view class="roommate-upload-text">添加图集</view>
+            <view wx:if="{{roommateGallery.length}}" class="roommate-upload-count">已选择{{roommateGallery.length}}张</view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <view wx:if="{{selectedIdentity === 'sublet'}}" class="content-section lease-section">
+      <view class="section-title">剩余租期哪天终止呢？</view>
+      <view class="lease-picker-card">
+        <view class="lease-picker-highlight"></view>
+        <picker-view class="lease-picker" value="{{leaseDateIndexes}}" indicator-style="height: 56rpx;" bindchange="onLeaseDateChange">
+          <picker-view-column>
+            <view wx:for="{{leaseYears}}" wx:key="*this" class="lease-picker-item">{{item}}年</view>
+          </picker-view-column>
+          <picker-view-column>
+            <view wx:for="{{leaseMonths}}" wx:key="*this" class="lease-picker-item">{{item}}月</view>
+          </picker-view-column>
+          <picker-view-column>
+            <view wx:for="{{leaseDays}}" wx:key="*this" class="lease-picker-item">{{item}}日</view>
+          </picker-view-column>
+        </picker-view>
+      </view>
+    </view>
+
+    <view wx:if="{{selectedIdentity === 'sublet'}}" class="contract-card">
+      <view class="contract-header" bindtap="toggleLandlordContract">
+        <view class="contract-title">是否可与房东签约</view>
+        <view class="contract-switch {{canSignLandlord ? 'contract-switch--active' : ''}}">
+          <view class="contract-switch-thumb"></view>
+        </view>
+      </view>
+      <view wx:if="{{canSignLandlord}}" class="contract-input-row">
+        <view class="contract-label">房东电话</view>
+        <input class="contract-input" value="{{form.landlordPhone}}" data-field="landlordPhone" type="number" placeholder="请输入" placeholder-class="input-placeholder" bindinput="onInput" />
+      </view>
+      <view wx:if="{{canSignLandlord}}" class="contract-tip">不会向任何人公布，仅是便于您的转租真实性有争议时进行核实</view>
+    </view>
+
+    <view class="scroll-spacer"></view>
+  </scroll-view>
+
+  <view class="footer-bar">
+    <view class="next-button" bindtap="nextStep">下一步</view>
+  </view>
+</view>

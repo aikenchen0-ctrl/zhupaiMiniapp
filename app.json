@@ -2,25 +2,14 @@
   "pages": [
     "pages/index/index",
     "pages/search/search",
-    "pages/map-search/map-search"
+    "pages/map-search/map-search",
+    "pages/publish-house/publish-house"
   ],
   "window": {
     "navigationBarTextStyle": "black",
     "navigationStyle": "custom"
   },
   "style": "v2",
-  "renderer": "skyline",
-  "rendererOptions": {
-    "skyline": {
-      "defaultDisplayBlock": true,
-      "defaultContentBox": true,
-      "tagNameStyleIsolation": "legacy",
-      "disableABTest": true,
-      "sdkVersionBegin": "3.0.0",
-      "sdkVersionEnd": "15.255.255"
-    }
-  },
-  "componentFramework": "glass-easel",
   "permission": {
     "scope.userLocation": {
       "desc": "用于显示当前所在区域"
