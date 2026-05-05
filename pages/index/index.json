@@ -1,7 +1,7 @@
 {
   "usingComponents": {
     "top-tabs": "/components/top-tabs/top-tabs",
-    "quick-actions": "/components/quick-actions/quick-actions",
+    "housing-match-panel": "/components/housing-match-panel/housing-match-panel",
     "feed-card": "/components/feed-card/feed-card"
   }
 }

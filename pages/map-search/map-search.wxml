@@ -1,0 +1,110 @@
+<view class="map-page">
+  <map
+    id="housingMap"
+    class="housing-map"
+    longitude="{{mapCenter.longitude}}"
+    latitude="{{mapCenter.latitude}}"
+    scale="{{mapScale}}"
+    markers="{{mapMarkers}}"
+    show-location
+    enable-zoom
+    enable-scroll
+    bindmarkertap="onMarkerTap"
+  ></map>
+
+  <view class="map-top" style="padding-top: {{statusBarHeight}}px; padding-right: {{menuSafeRight}}px;">
+    <view class="search-bar">
+      <view class="back-button" bindtap="goBack"></view>
+      <view class="search-icon"></view>
+      <input
+        class="map-input"
+        value="{{keyword}}"
+        placeholder="你想住在哪里"
+        placeholder-class="map-placeholder"
+        confirm-type="search"
+        bindinput="onKeywordInput"
+        bindconfirm="submitSearch"
+      />
+      <view class="message-icon"></view>
+    </view>
+
+    <view class="filter-row">
+      <view wx:for="{{filters}}" wx:key="name" class="filter-item" data-index="{{index}}" bindtap="onFilterTap">{{item.name}}<text>⌄</text></view>
+    </view>
+  </view>
+
+  <view wx:if="{{viewMode === 'district'}}" class="district-layer">
+    <view
+      wx:for="{{visibleDistricts}}"
+      wx:key="id"
+      class="district-bubble"
+      style="left: {{item.left}}%; top: {{item.top}}%;"
+      data-id="{{item.id}}"
+      bindtap="selectDistrict"
+    >
+      <text>{{item.name}}</text>
+      <text>{{item.count}}套</text>
+    </view>
+  </view>
+
+  <view wx:if="{{viewMode === 'houses'}}" class="house-layer">
+    <view
+      wx:for="{{visibleHouses}}"
+      wx:key="id"
+      class="house-tag"
+      style="left: {{item.left}}%; top: {{item.top}}%;"
+      data-id="{{item.id}}"
+      bindtap="selectHouse"
+    >{{item.name}}</view>
+  </view>
+
+  <view class="side-tools">
+    <view class="tool-item" bindtap="toggleMapMode">
+      <view class="tool-icon tool-icon--layer"></view>
+      <text>图层</text>
+    </view>
+    <view class="tool-item" bindtap="resetDistricts">
+      <view class="tool-icon tool-icon--area"></view>
+      <text>区域</text>
+    </view>
+    <view class="tool-item">
+      <view class="tool-icon tool-icon--heart"></view>
+      <text>关注</text>
+    </view>
+    <view class="tool-item" bindtap="openListPanel">
+      <view class="tool-icon tool-icon--list"></view>
+      <text>列表</text>
+    </view>
+  </view>
+
+  <view class="locate-button" bindtap="moveToLocation">
+    <view class="locate-icon"></view>
+    <text>定位</text>
+  </view>
+
+  <view wx:if="{{selectedDistrict}}" class="result-panel">
+    <view class="panel-head">
+      <view>
+        <view class="panel-title">{{selectedDistrict.name}} {{visibleHouses.length}}套房源</view>
+        <view class="panel-subtitle">{{resultHint}}</view>
+      </view>
+      <view class="panel-close" bindtap="resetDistricts">×</view>
+    </view>
+    <scroll-view class="house-list" scroll-y enhanced show-scrollbar="{{false}}">
+      <view wx:for="{{visibleHouses}}" wx:key="id" class="house-card" data-id="{{item.id}}" bindtap="selectHouse">
+        <view class="house-cover"></view>
+        <view class="house-main">
+          <view class="house-title">{{item.name}}</view>
+          <view class="house-meta">{{item.area}} · {{item.layout}} · {{item.distance}}</view>
+          <view class="house-tags">
+            <text wx:for="{{item.tags}}" wx:for-item="tag" wx:key="*this">{{tag}}</text>
+          </view>
+        </view>
+        <view class="house-price">{{item.price}}</view>
+      </view>
+      <view wx:if="{{!visibleHouses.length}}" class="empty-result">暂无匹配房源</view>
+    </scroll-view>
+  </view>
+
+  <view wx:if="{{toastText}}" class="toast-message">{{toastText}}</view>
+</view>

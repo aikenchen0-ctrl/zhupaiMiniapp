@@ -16,25 +16,24 @@ Component({
       type: Number,
       value: 0
     },
-    services: {
-      type: Array,
-      value: []
-    },
-    compact: {
-      type: Boolean,
-      value: false
+    keyword: {
+      type: String,
+      value: ''
     }
   },
+
   observers: {
     'stayOptions,currentStayIndex': function () {
       this.updateActiveStay()
     }
   },
+
   lifetimes: {
     attached() {
       this.updateActiveStay()
     }
   },
+
   methods: {
     updateActiveStay() {
       const { stayOptions = [], currentStayIndex = 0 } = this.data
@@ -46,6 +45,10 @@ Component({
     onStayTap(event) {
       const { index } = event.currentTarget.dataset
       this.triggerEvent('staychange', { index })
+    },
+
+    onKeywordInput(event) {
+      this.triggerEvent('keywordinput', { value: event.detail.value })
     },
 
     onFindTap() {

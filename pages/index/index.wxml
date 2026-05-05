@@ -1,5 +1,5 @@
 <view class="home-page">
-  <view class="top-fixed-area" style="padding-top: {{statusBarHeight}}px; height: calc({{statusBarHeight}}px + 72rpx);">
+  <view class="top-fixed-area top-fixed-area--light" style="padding-top: {{statusBarHeight}}px; height: calc({{statusBarHeight}}px + 72rpx);">
     <view class="home-header">
       <view class="search-icon" bindtap="onSearchTap"></view>
       <scroll-view class="main-nav-scroll" scroll-x enhanced show-scrollbar="{{false}}">
@@ -16,54 +16,106 @@
     </view>
   </view>
 
+  <view
+    class="match-tools-area {{showToolsForCurrentFeed ? '' : 'match-tools-area--hidden'}}"
+    style="top: calc({{statusBarHeight}}px + 72rpx); transform: translateY(-{{matchToolsOffsetRpx}}rpx);"
+    bindtouchstart="onMatchToolsTouchStart"
+    catchtouchmove="onMatchToolsTouchMove"
+    bindtouchend="onMatchToolsTouchEnd"
+    bindtouchcancel="onMatchToolsTouchEnd"
+  >
+    <housing-match-panel
+      housing-categories="{{housingCategories}}"
+      stay-options="{{stayOptions}}"
+      current-stay-index="{{currentStayIndex}}"
+      keyword="{{matchKeyword}}"
+      bind:staychange="onStayChange"
+      bind:keywordinput="onMatchKeywordInput"
+      bind:find="onFindTap"
+      bind:match="onMatchTap"
+    ></housing-match-panel>
+
+    <view class="service-scroll">
+      <view class="service-row">
+        <view wx:for="{{services}}" wx:key="text" class="service-item">
+          <image class="service-icon" src="{{item.icon}}" mode="aspectFit"></image>
+          <view class="service-text">{{item.text}}</view>
+        </view>
+      </view>
+    </view>
+  </view>
+
   <swiper
     class="feed-swiper"
     current="{{currentFeedIndex}}"
     vertical
+    disable-touch="{{feedTouchLocked}}"
     duration="260"
     easing-function="easeOutCubic"
     bindchange="onFeedChange"
     bindtransition="onFeedTransition"
     bindanimationfinish="onFeedAnimationFinish"
+    bindtouchstart="onFeedSwipeTouchStart"
+    bindtouchmove="onFeedSwipeTouchMove"
+    bindtouchend="onFeedSwipeTouchEnd"
+    bindtouchcancel="onFeedSwipeTouchEnd"
   >
     <swiper-item wx:for="{{feeds}}" wx:key="id">
       <view class="feed-page {{currentFeedIndex === index ? 'feed-page--active' : ''}}">
-        <view wx:if="{{index === 0}}" class="hero-tool-panel {{heroToolsExpanded ? 'hero-tool-panel--expanded' : ''}}" style="top: calc({{statusBarHeight}}px + 88rpx);">
-          <quick-actions
-            housing-categories="{{housingCategories}}"
-            stay-options="{{stayOptions}}"
-            current-stay-index="{{currentStayIndex}}"
-            services="{{services}}"
-            compact="{{false}}"
-            bind:staychange="onStayChange"
-            bind:find="onFindTap"
-            bind:match="onMatchTap"
-          ></quick-actions>
-        </view>
         <feed-card
           feed="{{item}}"
           is-active="{{currentFeedIndex === index}}"
           blur-rpx="{{transitionBlurIndex === index ? transitionBlurRpx : 0}}"
-          show-tools-space="{{index === 0}}"
+          show-tools-space="{{false}}"
           bind:like="onLikeFeed"
           bind:comment="onOpenComments"
+          bind:progress="onFeedProgress"
         ></feed-card>
       </view>
     </swiper-item>
   </swiper>
 
+  <view
+    wx:if="{{showToolsForCurrentFeed || feedTouchLocked}}"
+    class="feed-touch-lock {{showToolsForCurrentFeed ? 'feed-touch-lock--tools-visible' : ''}}"
+    catchtouchstart="onFeedLockTouchStart"
+    catchtouchmove="onFeedLockTouchMove"
+    catchtouchend="onFeedLockTouchEnd"
+    catchtouchcancel="onFeedLockTouchEnd"
+  ></view>
+
   <view wx:if="{{!showToolsForCurrentFeed}}" class="feed-side-actions">
-    <view class="avatar-wrap">
-      <view class="avatar-head"></view>
-      <view class="avatar-body"></view>
-      <view class="avatar-badge"></view>
+    <view class="side-action side-action--avatar" bindtap="onFollowActiveFeed">
+      <view class="side-icon-shell avatar-shell">
+        <image class="side-icon side-icon--avatar" src="{{socialIcons.user}}" mode="aspectFit"></image>
+        <view class="follow-badge"></view>
+      </view>
     </view>
-    <view class="action-heart {{activeFeed.liked ? 'action-heart--liked' : ''}}" bindtap="onLikeActiveFeed"></view>
-    <view class="action-count">{{activeFeed.likeText}}</view>
-    <view class="action-chat" bindtap="onOpenActiveComments"></view>
-    <view class="action-count">{{activeFeed.commentText}}</view>
-    <view class="color-wheel"></view>
-    <view class="action-count">7099</view>
+    <view class="side-action" bindtap="onLikeActiveFeed">
+      <view class="side-icon-shell">
+        <image class="side-icon" src="{{activeFeed.liked ? socialIcons.likeActive : socialIcons.like}}" mode="aspectFit"></image>
+        <view class="side-count-badge">{{activeFeed.likeText}}</view>
+      </view>
+    </view>
+    <view class="side-action" bindtap="onOpenActiveComments">
+      <view class="side-icon-shell">
+        <image class="side-icon" src="{{socialIcons.comment}}" mode="aspectFit"></image>
+        <view class="side-count-badge">{{activeFeed.commentText}}</view>
+      </view>
+    </view>
+    <view class="side-action side-action--share">
+      <view class="side-icon-shell">
+        <image class="side-icon" src="{{socialIcons.share}}" mode="aspectFit"></image>
+        <view class="side-count-badge">{{activeFeed.shareText}}</view>
+      </view>
+      <button class="side-share-button" open-type="share" bindtap="onShareFeed"></button>
+    </view>
+    <view class="side-action" bindtap="onColorToolTap">
+      <view class="side-icon-shell side-icon-shell--plain">
+        <image class="side-icon side-icon--color" src="{{socialIcons.color}}" mode="aspectFit"></image>
+        <view class="side-count-badge side-count-badge--soft">{{activeFeed.colorCountText}}</view>
+      </view>
+    </view>
   </view>
 
   <view wx:if="{{!showToolsForCurrentFeed}}" class="feed-info-overlay">
@@ -71,10 +123,33 @@
     <view class="feed-title">{{activeFeed.title}}</view>
     <view class="feed-desc">{{activeFeed.description}}</view>
     <view class="feed-tags">{{activeFeed.tags}}</view>
-    <view class="price-line">
-      <text class="price-text">¥{{activeFeed.price}} {{activeFeed.rentType}}</text>
-      <text class="detail-link">{{activeFeed.linkText}} ></text>
+    <view class="music-line">
+      <text class="music-note">♪</text>
+      <view class="music-viewport">
+        <text class="music-text {{activeMusicScroll ? 'music-text--scroll' : ''}}">{{activeMusicTitle}}</text>
+      </view>
     </view>
+    <view class="price-panel {{showCollectionEntry ? 'price-panel--with-collection' : ''}}">
+      <view class="price-line">
+        <text class="price-text">¥{{activeFeed.price}} {{activeFeed.rentType}}</text>
+        <text class="detail-link">{{activeFeed.linkText}} ></text>
+      </view>
+    </view>
+    <view class="video-progress-row {{showCollectionEntry ? 'video-progress-row--with-collection' : ''}}">
+      <view class="video-progress-track">
+        <view class="video-progress-fill" style="width: {{activeFeedProgressPercent}}%;"></view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{showCollectionEntry}}" class="collection-entry" bindtap="openCollectionDrawer">
+    <view class="collection-entry-icon">
+      <view></view>
+      <view></view>
+      <view></view>
+    </view>
+    <view class="collection-entry-text">合集 · {{activeCollection.title}}</view>
+    <view class="collection-entry-close" catchtap="hideCollectionEntry">×</view>
   </view>
 
   <view wx:if="{{toastText}}" class="toast-message">{{toastText}}</view>
@@ -90,31 +165,134 @@
     </view>
   </view>
 
-  <view wx:if="{{showCommentDrawer}}" class="comment-mask" bindtap="closeCommentDrawer"></view>
-  <view wx:if="{{showCommentDrawer}}" class="comment-drawer">
-    <view class="drawer-handle"></view>
-    <view class="drawer-title">评论 {{activeComments.length}}</view>
-    <scroll-view class="comment-list" scroll-y>
-      <view wx:for="{{activeComments}}" wx:key="text" class="comment-item">
-        <view class="comment-user">{{item.user}}</view>
-        <view class="comment-text">{{item.text}}</view>
+  <view wx:if="{{showCommentDrawer}}" class="comment-mask {{commentDrawerVisible ? 'comment-mask--visible' : ''}}" bindtap="closeCommentDrawer"></view>
+  <view wx:if="{{showCommentDrawer}}" class="comment-drawer {{commentDrawerVisible ? 'comment-drawer--visible' : ''}}">
+    <view class="comment-top">
+      <view class="place-icon"></view>
+      <view class="place-info" bindtap="openPlacePanel">
+        <view class="place-title">地点 {{activeFeed.location}}</view>
+        <view class="place-subtitle">查看地址/用户评价</view>
+      </view>
+      <view class="comment-close" bindtap="closeCommentDrawer">×</view>
+    </view>
+    <view class="comment-tabs">
+      <view
+        wx:for="{{commentTabs}}"
+        wx:key="key"
+        class="comment-tab {{currentCommentTab === index ? 'comment-tab--active' : ''}}"
+        data-index="{{index}}"
+        bindtap="onCommentTabTap"
+      >{{item.name}}{{item.count ? item.count : ''}}</view>
+    </view>
+    <scroll-view class="comment-list" scroll-y enhanced show-scrollbar="{{false}}">
+      <view wx:for="{{activeComments}}" wx:key="id" class="comment-item">
+        <image wx:if="{{item.avatar}}" class="comment-avatar" src="{{item.avatar}}" mode="aspectFill"></image>
+        <view wx:else class="comment-avatar comment-avatar--text">{{item.userInitial}}</view>
+        <view class="comment-main">
+          <view class="comment-user">{{item.user}}</view>
+          <view class="comment-text">{{item.text}}</view>
+          <view class="comment-meta">{{item.timeText}} <text class="comment-reply" data-index="{{index}}" bindtap="replyComment">回复</text></view>
+          <view wx:if="{{item.replyText}}" class="comment-replies" data-index="{{index}}" bindtap="replyComment">{{item.replyText}}</view>
+        </view>
+        <view class="comment-like" data-index="{{index}}" bindtap="toggleCommentLike">
+          <view class="comment-heart {{item.liked ? 'comment-heart--active' : ''}}"></view>
+          <view class="comment-like-count">{{item.likeCount}}</view>
+        </view>
       </view>
     </scroll-view>
     <view class="comment-input-row">
-      <view class="comment-placeholder">说点什么...</view>
-      <view class="comment-send" bindtap="addMockComment">模拟评论</view>
+      <input
+        class="comment-input"
+        value="{{commentDraft}}"
+        placeholder="发条有爱评论..."
+        confirm-type="send"
+        bindinput="onCommentDraftInput"
+        bindconfirm="submitComment"
+      />
+      <image class="comment-tool-icon" src="{{commentToolIcons.at}}" mode="aspectFit"></image>
+      <image class="comment-tool-icon" src="{{commentToolIcons.face}}" mode="aspectFit"></image>
+      <view class="comment-send" bindtap="submitComment">发布</view>
     </view>
+  </view>
+
+  <view wx:if="{{showPlacePanel}}" class="place-mask" bindtap="closePlacePanel"></view>
+  <view wx:if="{{showPlacePanel}}" class="place-panel">
+    <view class="place-panel-header">
+      <view>
+        <view class="place-panel-title">{{activeFeed.location}}</view>
+        <view class="place-panel-subtitle">地址与用户评价</view>
+      </view>
+      <view class="place-panel-close" bindtap="closePlacePanel">×</view>
+    </view>
+    <view class="place-address-row">
+      <view class="place-address-icon"></view>
+      <view>
+        <view class="place-address-title">模拟地址</view>
+        <view class="place-address-text">{{placeDetail.address}}</view>
+      </view>
+    </view>
+    <view class="place-score-row">
+      <view class="place-score">{{placeDetail.score}}</view>
+      <view class="place-score-text">环境 {{placeDetail.environment}} · 交通 {{placeDetail.traffic}} · 真实度 {{placeDetail.reality}}</view>
+    </view>
+    <view class="place-review-title">用户评价</view>
+    <view wx:for="{{placeDetail.reviews}}" wx:key="text" class="place-review-item">
+      <view class="place-review-user">{{item.user}}</view>
+      <view class="place-review-text">{{item.text}}</view>
+    </view>
+  </view>
+
+  <view wx:if="{{showCollectionDrawer}}" class="collection-mask" bindtap="closeCollectionDrawer"></view>
+  <view wx:if="{{showCollectionDrawer}}" class="collection-drawer">
+    <view class="collection-drawer-header">
+      <view class="collection-title-wrap">
+        <view class="collection-title-icon">
+          <view></view>
+          <view></view>
+          <view></view>
+        </view>
+        <view class="collection-drawer-title">相关合集</view>
+        <view class="collection-drawer-name">{{activeCollection.title}}</view>
+      </view>
+      <view class="collection-drawer-close" bindtap="closeCollectionDrawer">⌄</view>
+    </view>
+    <scroll-view class="collection-list" scroll-x enhanced show-scrollbar="{{false}}">
+      <view class="collection-track">
+        <view wx:for="{{activeCollection.items}}" wx:key="id" class="collection-card">
+          <image class="collection-cover" src="{{item.cover}}" mode="aspectFill"></image>
+          <view class="collection-card-shade"></view>
+          <view class="collection-card-title">{{item.title}}</view>
+          <view class="collection-card-meta">
+            <text class="collection-like-icon">♡</text>
+            <text>{{item.likeText}}</text>
+          </view>
+          <view class="collection-episode">{{item.episodeText}}</view>
+        </view>
+      </view>
+    </scroll-view>
   </view>
 
   <view wx:if="{{showPublishPanel}}" class="publish-mask" bindtap="closePublishPanel"></view>
   <view wx:if="{{showPublishPanel}}" class="publish-panel">
-    <view class="publish-option">发图集</view>
-    <view class="publish-option">发视频</view>
+    <view class="publish-option">
+      <view class="publish-option-icon publish-option-icon--album"></view>
+      <view class="publish-option-main">
+        <view class="publish-option-title">发图集</view>
+        <view class="publish-option-desc">多图记录房源</view>
+      </view>
+    </view>
+    <view class="publish-option">
+      <view class="publish-option-icon publish-option-icon--video"></view>
+      <view class="publish-option-main">
+        <view class="publish-option-title">发视频</view>
+        <view class="publish-option-desc">上传看房视频</view>
+      </view>
+    </view>
   </view>
 
   <view class="bottom-tabbar">
     <view class="tabbar-item tabbar-item--active">首页</view>
-    <view class="tabbar-item">同城</view>
+    <view class="tabbar-item">{{cityTabText}}</view>
     <view class="publish-button {{showPublishPanel ? 'publish-button--active' : ''}}" bindtap="togglePublishPanel">
       <view class="publish-ring"></view>
     </view>
