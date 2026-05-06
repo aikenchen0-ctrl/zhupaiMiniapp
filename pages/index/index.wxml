@@ -16,7 +16,178 @@
     </view>
   </view>
 
+  <scroll-view
+    wx:if="{{currentMainNav === 0}}"
+    class="housing-channel"
+    style="padding-top: calc({{statusBarHeight}}px + 72rpx);"
+    scroll-y
+    enhanced
+    show-scrollbar="{{false}}"
+  >
+    <housing-match-panel
+      housing-categories="{{housingCategories}}"
+      stay-options="{{stayOptions}}"
+      current-stay-index="{{currentStayIndex}}"
+      keyword="{{matchKeyword}}"
+      bind:staychange="onStayChange"
+      bind:keywordinput="onMatchKeywordInput"
+      bind:find="onFindTap"
+      bind:match="onMatchTap"
+    ></housing-match-panel>
+
+    <view class="housing-tool-section">
+      <view wx:for="{{housingTools}}" wx:key="text" class="housing-tool-item" data-type="{{item.type}}" bindtap="onHousingToolTap">
+        <image class="housing-tool-icon" src="{{item.icon}}" mode="aspectFit"></image>
+        <view class="housing-tool-text">{{item.text}}</view>
+      </view>
+    </view>
+
+    <view class="housing-card-tip" bindtap="onHousingSloganTap">
+      <view class="housing-promise-text">1分钟生成找房，省去1天沟通</view>
+      <view class="housing-promise-action">知道</view>
+      <view class="housing-promise-arrow"></view>
+    </view>
+
+    <view class="housing-bonus-card" bindtap="onHousingBonusTap">
+      <view class="housing-bonus-icon"></view>
+      <view class="housing-bonus-text">有奖免费住</view>
+      <view class="housing-bonus-action">去领奖</view>
+    </view>
+
+    <view class="housing-rank-tabs">
+      <view
+        wx:for="{{housingRankTabs}}"
+        wx:key="key"
+        class="housing-rank-tab {{currentHousingRankIndex === index ? 'housing-rank-tab--active' : ''}}"
+        data-index="{{index}}"
+        bindtap="onHousingRankTap"
+      >
+        <image class="housing-rank-icon" src="{{item.icon}}" mode="aspectFit"></image>
+        <text>{{item.name}}</text>
+      </view>
+    </view>
+
+    <view class="housing-video-section">
+      <view class="housing-video-list">
+        <view wx:for="{{activeHousingFeeds}}" wx:key="id" class="housing-video-card">
+          <feed-card
+            feed="{{item}}"
+            is-active="{{false}}"
+            blur-rpx="0"
+            show-tools-space="{{false}}"
+            bind:like="onLikeFeed"
+            bind:comment="onOpenComments"
+            bind:progress="onFeedProgress"
+          ></feed-card>
+          <view class="housing-video-tap-layer" data-index="{{index}}" bindtap="onHousingVideoTap"></view>
+          <view class="housing-video-info">
+            <view class="housing-video-title">{{item.title}}</view>
+            <view class="housing-video-desc">{{item.description}}</view>
+            <view class="housing-video-meta">
+              <text class="housing-video-price">¥{{item.price}} {{item.rentType}}</text>
+              <text class="housing-video-place">{{item.linkText}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+      <view class="housing-preview-info">
+        <view class="housing-preview-title">{{activeHousingRank.title}}</view>
+        <view class="housing-preview-desc">{{activeHousingRank.desc}}</view>
+      </view>
+    </view>
+  </scroll-view>
+
+  <view wx:if="{{currentMainNav === 0 && showHousingFullscreen}}" class="housing-fullscreen">
+    <swiper
+      class="housing-fullscreen-swiper"
+      current="{{currentHousingFeedIndex}}"
+      vertical
+      duration="260"
+      easing-function="easeOutCubic"
+      bindchange="onHousingFullscreenChange"
+    >
+      <swiper-item wx:for="{{activeHousingFeeds}}" wx:key="id">
+        <view class="feed-page {{currentHousingFeedIndex === index ? 'feed-page--active' : ''}}">
+          <feed-card
+            feed="{{item}}"
+            is-active="{{currentHousingFeedIndex === index && showHousingFullscreen}}"
+            blur-rpx="0"
+            show-tools-space="{{false}}"
+            bind:like="onLikeFeed"
+            bind:comment="onOpenComments"
+            bind:progress="onFeedProgress"
+          ></feed-card>
+        </view>
+      </swiper-item>
+    </swiper>
+
+    <view
+      class="housing-fullscreen-back"
+      style="top: calc({{statusBarHeight}}px + 16rpx);"
+      bindtap="closeHousingFullscreen"
+    >‹</view>
+
+    <view class="feed-side-actions housing-fullscreen-actions">
+      <view class="side-action side-action--avatar" bindtap="onFollowActiveFeed">
+        <view class="side-icon-shell avatar-shell">
+          <image class="side-icon side-icon--avatar" src="{{socialIcons.user}}" mode="aspectFit"></image>
+          <view class="follow-badge"></view>
+        </view>
+      </view>
+      <view class="side-action" bindtap="onLikeActiveFeed">
+        <view class="side-icon-shell">
+          <image class="side-icon" src="{{activeFeed.liked ? socialIcons.likeActive : socialIcons.like}}" mode="aspectFit"></image>
+          <view class="side-count-badge">{{activeFeed.likeText}}</view>
+        </view>
+      </view>
+      <view class="side-action" bindtap="onOpenActiveComments">
+        <view class="side-icon-shell">
+          <image class="side-icon" src="{{socialIcons.comment}}" mode="aspectFit"></image>
+          <view class="side-count-badge">{{activeFeed.commentText}}</view>
+        </view>
+      </view>
+      <view class="side-action side-action--share">
+        <view class="side-icon-shell">
+          <image class="side-icon" src="{{socialIcons.share}}" mode="aspectFit"></image>
+          <view class="side-count-badge">{{activeFeed.shareText}}</view>
+        </view>
+        <button class="side-share-button" open-type="share" bindtap="onShareFeed"></button>
+      </view>
+      <view class="side-action" bindtap="onColorToolTap">
+        <view class="side-icon-shell side-icon-shell--plain">
+          <image class="side-icon side-icon--color" src="{{socialIcons.color}}" mode="aspectFit"></image>
+          <view class="side-count-badge side-count-badge--soft">{{activeFeed.colorCountText}}</view>
+        </view>
+      </view>
+    </view>
+
+    <view class="feed-info-overlay housing-fullscreen-info">
+      <view class="author-line">@ {{activeFeed.author}} · {{activeFeed.location}}</view>
+      <view class="feed-title">{{activeFeed.title}}</view>
+      <view class="feed-desc">{{activeFeed.description}}</view>
+      <view class="feed-tags">{{activeFeed.tags}}</view>
+      <view class="music-line">
+        <text class="music-note">♪</text>
+        <view class="music-viewport">
+          <text class="music-text {{activeMusicScroll ? 'music-text--scroll' : ''}}">{{activeMusicTitle}}</text>
+        </view>
+      </view>
+      <view class="price-panel">
+        <view class="price-line">
+          <text class="price-text">¥{{activeFeed.price}} {{activeFeed.rentType}}</text>
+          <text class="detail-link">{{activeFeed.linkText}} ></text>
+        </view>
+      </view>
+      <view class="video-progress-row housing-fullscreen-progress">
+        <view class="video-progress-track">
+          <view class="video-progress-fill" style="width: {{activeFeedProgressPercent}}%;"></view>
+        </view>
+      </view>
+    </view>
+  </view>
+
   <view
+    wx:if="{{currentMainNav === 3}}"
     class="match-tools-area {{showToolsForCurrentFeed ? '' : 'match-tools-area--hidden'}}"
     style="top: calc({{statusBarHeight}}px + 72rpx); transform: translateY(-{{matchToolsOffsetRpx}}rpx);"
     bindtouchstart="onMatchToolsTouchStart"
@@ -46,10 +217,11 @@
   </view>
 
   <swiper
+    wx:if="{{currentMainNav === 3}}"
     class="feed-swiper"
     current="{{currentFeedIndex}}"
     vertical
-    disable-touch="{{feedTouchLocked}}"
+    disable-touch="{{showToolsForCurrentFeed || feedTouchLocked}}"
     duration="260"
     easing-function="easeOutCubic"
     bindchange="onFeedChange"
@@ -64,7 +236,7 @@
       <view class="feed-page {{currentFeedIndex === index ? 'feed-page--active' : ''}}">
         <feed-card
           feed="{{item}}"
-          is-active="{{currentFeedIndex === index}}"
+          is-active="{{currentFeedIndex === index && (index !== 0 || (matchToolsCollapsed && !showToolsForCurrentFeed))}}"
           blur-rpx="{{transitionBlurIndex === index ? transitionBlurRpx : 0}}"
           show-tools-space="{{false}}"
           bind:like="onLikeFeed"
@@ -76,7 +248,7 @@
   </swiper>
 
   <view
-    wx:if="{{showToolsForCurrentFeed || feedTouchLocked}}"
+    wx:if="{{currentMainNav === 3 && (showToolsForCurrentFeed || feedTouchLocked)}}"
     class="feed-touch-lock {{showToolsForCurrentFeed ? 'feed-touch-lock--tools-visible' : ''}}"
     catchtouchstart="onFeedLockTouchStart"
     catchtouchmove="onFeedLockTouchMove"
@@ -84,7 +256,38 @@
     catchtouchcancel="onFeedLockTouchEnd"
   ></view>
 
-  <view wx:if="{{!showToolsForCurrentFeed}}" class="feed-side-actions">
+  <view
+    wx:if="{{currentMainNav === 3 && currentFeedIndex === 0 && matchToolsCollapsed && !showToolsForCurrentFeed}}"
+    class="tools-restore-zone"
+    catchtouchstart="onFeedLockTouchStart"
+    catchtouchmove="onFeedLockTouchMove"
+    catchtouchend="onFeedLockTouchEnd"
+    catchtouchcancel="onFeedLockTouchEnd"
+  ></view>
+
+  <view
+    wx:if="{{currentMainNav === 3 && !showToolsForCurrentFeed && mealRedPacket.visible}}"
+    class="meal-red-packet"
+    style="top: calc({{statusBarHeight}}px + 150rpx);"
+    bindtap="onMealRedPacketTap"
+  >
+    <view class="meal-red-packet-title">
+      <view>{{mealRedPacket.title}}</view>
+      <view>红包</view>
+    </view>
+    <view class="meal-red-packet-body">
+      <view class="meal-red-packet-seal"></view>
+    </view>
+    <view class="meal-red-packet-time">
+      <text
+        wx:for="{{mealRedPacket.countdownChars}}"
+        wx:key="index"
+        class="{{item.className}}"
+      >{{item.value}}</text>
+    </view>
+  </view>
+
+  <view wx:if="{{currentMainNav === 3 && !showToolsForCurrentFeed}}" class="feed-side-actions">
     <view class="side-action side-action--avatar" bindtap="onFollowActiveFeed">
       <view class="side-icon-shell avatar-shell">
         <image class="side-icon side-icon--avatar" src="{{socialIcons.user}}" mode="aspectFit"></image>
@@ -118,7 +321,7 @@
     </view>
   </view>
 
-  <view wx:if="{{!showToolsForCurrentFeed}}" class="feed-info-overlay">
+  <view wx:if="{{currentMainNav === 3 && !showToolsForCurrentFeed}}" class="feed-info-overlay">
     <view class="author-line">@ {{activeFeed.author}} · {{activeFeed.location}}</view>
     <view class="feed-title">{{activeFeed.title}}</view>
     <view class="feed-desc">{{activeFeed.description}}</view>
@@ -142,7 +345,7 @@
     </view>
   </view>
 
-  <view wx:if="{{showCollectionEntry}}" class="collection-entry" bindtap="openCollectionDrawer">
+  <view wx:if="{{currentMainNav === 3 && showCollectionEntry}}" class="collection-entry" bindtap="openCollectionDrawer">
     <view class="collection-entry-icon">
       <view></view>
       <view></view>
@@ -206,7 +409,12 @@
         value="{{commentDraft}}"
         placeholder="发条有爱评论..."
         confirm-type="send"
+        focus="{{commentInputFocus}}"
+        adjust-position="{{true}}"
+        cursor-spacing="32"
         bindinput="onCommentDraftInput"
+        bindfocus="onCommentInputFocus"
+        bindblur="onCommentInputBlur"
         bindconfirm="submitComment"
       />
       <image class="comment-tool-icon" src="{{commentToolIcons.at}}" mode="aspectFit"></image>

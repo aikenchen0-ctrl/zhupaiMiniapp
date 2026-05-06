@@ -19,8 +19,14 @@
 
     <view class="match-body">
       <view class="city-row">
-        <view class="city-name">深圳市</view>
-        <view class="location-text">当前位置</view>
+        <view class="city-name">
+          <text>深圳市</text>
+          <view class="city-arrow"></view>
+        </view>
+        <view class="location-text">
+          <view class="location-dot"></view>
+          <text>当前位置</text>
+        </view>
       </view>
 
       <view class="meta-row">

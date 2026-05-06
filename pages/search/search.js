@@ -80,6 +80,14 @@ Page({
   },
 
   onLoad() {
+    this.refreshPageState()
+  },
+
+  onShow() {
+    this.refreshPageState()
+  },
+
+  refreshPageState() {
     const windowInfo = wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync()
     const { statusBarHeight = 20 } = windowInfo
     const rankings = this.loadRankings()
@@ -169,7 +177,11 @@ Page({
   },
 
   onHouseCardEntryTap() {
-    wx.navigateTo({ url: '/pages/map-search/map-search' })
+    if (this.data.hasHouseCard) {
+      wx.navigateTo({ url: '/pages/map-search/map-search' })
+      return
+    }
+    wx.navigateTo({ url: '/pages/commute-setting/commute-setting' })
   },
 
   onKeywordInput(event) {
@@ -187,7 +199,7 @@ Page({
       return
     }
     this.saveHistory(keyword)
-    wx.navigateTo({ url: `/pages/map-search/map-search?keyword=${encodeURIComponent(keyword)}` })
+    wx.navigateTo({ url: `/pages/search-result/search-result?keyword=${encodeURIComponent(keyword)}&source=search` })
   },
 
   saveHistory(keyword) {
@@ -242,13 +254,13 @@ Page({
   onFindTap() {
     const query = this.data.areaKeyword || this.data.keyword || '深圳市'
     this.saveHistory(query)
-    this.showToast(`已查找：${query}`)
+    wx.navigateTo({ url: `/pages/search-result/search-result?keyword=${encodeURIComponent(query)}&source=find` })
   },
 
   onSmartMatch() {
     const query = this.data.areaKeyword || this.data.keyword || '深圳市'
     this.saveHistory(query)
-    this.showToast(`已智能匹配：${query}`)
+    wx.navigateTo({ url: `/pages/search-result/search-result?keyword=${encodeURIComponent(query)}&source=match` })
   },
 
   onRankTabTap(event) {

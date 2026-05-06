@@ -3,7 +3,10 @@
     "pages/index/index",
     "pages/search/search",
     "pages/map-search/map-search",
-    "pages/publish-house/publish-house"
+    "pages/publish-house/publish-house",
+    "pages/commute-setting/commute-setting",
+    "pages/search-result/search-result",
+    "pages/housing/housing"
   ],
   "window": {
     "navigationBarTextStyle": "black",

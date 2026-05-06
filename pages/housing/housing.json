@@ -1,0 +1,6 @@
+{
+  "navigationStyle": "custom",
+  "usingComponents": {
+    "housing-match-panel": "/components/housing-match-panel/housing-match-panel"
+  }
+}
