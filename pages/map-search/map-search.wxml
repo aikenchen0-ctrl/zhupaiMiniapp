@@ -59,10 +59,6 @@
   </view>
 
   <view class="side-tools">
-    <view class="tool-item" bindtap="toggleMapMode">
-      <view class="tool-icon tool-icon--layer"></view>
-      <text>图层</text>
-    </view>
     <view class="tool-item" bindtap="resetDistricts">
       <view class="tool-icon tool-icon--area"></view>
       <text>区域</text>
@@ -70,10 +66,6 @@
     <view class="tool-item">
       <view class="tool-icon tool-icon--heart"></view>
       <text>关注</text>
-    </view>
-    <view class="tool-item" bindtap="openListPanel">
-      <view class="tool-icon tool-icon--list"></view>
-      <text>列表</text>
     </view>
   </view>
 

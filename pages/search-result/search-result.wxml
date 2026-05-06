@@ -1,0 +1,208 @@
+<view class="result-page">
+  <view class="result-top" style="padding-top: {{statusBarHeight}}px;">
+    <view class="search-row">
+      <view class="back-button" bindtap="goBack"></view>
+      <view class="search-box">
+        <view class="search-icon"></view>
+        <input
+          class="result-input"
+          value="{{keyword}}"
+          placeholder="小区/商圈/地铁站/上班地点"
+          placeholder-class="result-placeholder"
+          confirm-type="search"
+          bindinput="onKeywordInput"
+          bindconfirm="submitSearch"
+        />
+      </view>
+    </view>
+
+    <view class="filter-row">
+      <view class="filter-main {{activeFilter === 'region' ? 'filter-active' : ''}}" data-key="region" bindtap="openFilter">{{displayPoint}}<text></text></view>
+      <view class="filter-item {{activeFilter === 'room' ? 'filter-active' : ''}}" data-key="room" bindtap="openFilter">{{roomFilterLabel}}<text></text></view>
+      <view class="filter-item {{activeFilter === 'rent' ? 'filter-active' : ''}}" data-key="rent" bindtap="openFilter">{{rentFilterLabel}}<text></text></view>
+      <view class="filter-item {{activeFilter === 'more' ? 'filter-active' : ''}}" data-key="more" bindtap="openFilter">更多<text></text></view>
+      <view class="filter-item filter-item--strong {{activeFilter === 'sort' ? 'filter-active' : ''}}" data-key="sort" bindtap="openFilter">{{sortLabel}}<text></text></view>
+    </view>
+
+    <view class="commute-row">
+      <view class="commute-mode" data-key="commute" bindtap="openFilter">{{transportName}}<text></text></view>
+      <view class="commute-time">{{minutes}}分</view>
+      <slider
+        class="commute-slider"
+        min="15"
+        max="60"
+        step="5"
+        value="{{minutes}}"
+        activeColor="#a76435"
+        backgroundColor="#eeeeee"
+        block-size="22"
+        block-color="#ffffff"
+        bindchange="onMinuteChange"
+      />
+    </view>
+  </view>
+
+  <scroll-view
+    class="result-list"
+    scroll-y
+    enhanced
+    show-scrollbar="{{false}}"
+    lower-threshold="120"
+    bindscrolltolower="loadMore"
+  >
+    <view wx:for="{{visibleHouses}}" wx:key="id" class="house-card">
+      <view class="cover-wrap">
+        <view class="cover-image cover-image--{{index % 5}}">
+          <view class="brand-badge">钻石好房</view>
+          <view class="vr-badge"></view>
+        </view>
+      </view>
+      <view class="house-main">
+        <view class="house-title">
+          <text wx:if="{{item.goodRent}}" class="rent-badge">省心租</text>
+          <text>{{item.title}}</text>
+        </view>
+        <view class="house-meta">{{item.size}} | {{item.face}} | {{item.floor}} | 电梯</view>
+        <view class="house-location">距离{{item.line}}-{{item.station}}{{item.distance}}</view>
+        <view class="house-commute">{{transportName}}{{item.commuteMinute}}分钟</view>
+        <view class="price-row">
+          <text class="price-main">{{item.price}}</text>
+          <text class="price-unit">{{item.priceUnit}}</text>
+          <text wx:if="{{item.originPrice}}" class="origin-price">{{item.originPrice}}</text>
+        </view>
+        <view class="tag-row">
+          <text wx:for="{{item.tags}}" wx:for-item="tag" wx:key="*this">{{tag}}</text>
+        </view>
+        <view wx:if="{{item.hotText}}" class="hot-row">{{item.hotText}}</view>
+      </view>
+    </view>
+
+    <view class="load-state">{{hasMore ? '继续上拉加载更多' : '已经到底了'}}</view>
+  </scroll-view>
+
+  <view wx:if="{{filterPanelMounted}}" class="filter-mask {{showFilterPanel ? 'filter-mask--visible' : ''}}" bindtap="closeFilter"></view>
+  <view wx:if="{{filterPanelMounted}}" class="filter-panel {{showFilterPanel ? 'filter-panel--visible' : ''}}">
+    <view wx:if="{{activeFilter === 'region'}}" class="filter-content filter-content--columns">
+      <view class="filter-left">
+        <view wx:for="{{regionMenus}}" wx:key="key" class="left-item {{regionMenu === item.key ? 'left-item--active' : ''}}" data-key="{{item.key}}" bindtap="onRegionMenuTap">{{item.name}}</view>
+      </view>
+      <scroll-view wx:if="{{regionMenu !== 'commute'}}" class="filter-middle" scroll-y enhanced show-scrollbar="{{false}}">
+        <view wx:for="{{regionMiddleOptions}}" wx:key="key" class="middle-item {{selectedMiddle === item.key ? 'middle-item--active' : ''}}" data-key="{{item.key}}" bindtap="onMiddleTap">{{item.name}}</view>
+      </scroll-view>
+      <scroll-view class="filter-right {{regionMenu === 'commute' ? 'filter-right--wide' : ''}}" scroll-y enhanced show-scrollbar="{{false}}">
+        <view wx:if="{{regionMenu === 'commute'}}" class="commute-card">
+          <view class="commute-card-title">{{commutePoint || '深圳北站'}}</view>
+          <view class="transport-row">
+            <view wx:for="{{transportOptions}}" wx:key="key" class="transport-choice {{transport === item.key ? 'transport-choice--active' : ''}}" data-key="{{item.key}}" bindtap="onTransportTap">{{item.name}}</view>
+          </view>
+          <slider class="panel-slider" min="15" max="60" step="5" value="{{minutes}}" activeColor="#a76435" backgroundColor="#eeeeee" block-size="22" block-color="#ffffff" bindchange="onMinuteChange" />
+          <view class="panel-add" bindtap="chooseCommutePoint">＋ 添加TA的通勤要求</view>
+        </view>
+        <view wx:if="{{regionMenu === 'search'}}" class="location-pick" bindtap="chooseSearchLocation">使用微信地图选择地点</view>
+        <view
+          wx:for="{{regionRightOptions}}"
+          wx:key="key"
+          class="right-item"
+          data-key="{{item.key}}"
+          data-name="{{item.name}}"
+          bindtap="onRegionOptionTap"
+        >
+          <view>
+            <view class="right-title">{{item.name}}</view>
+            <view wx:if="{{item.rate}}" class="right-subtitle">{{item.rate}}的用户选择</view>
+          </view>
+          <view class="radio {{regionValue === item.key ? 'radio--checked' : ''}}"></view>
+        </view>
+      </scroll-view>
+    </view>
+
+    <view wx:if="{{activeFilter === 'room'}}" class="filter-content filter-content--room">
+      <view class="room-left">
+        <view wx:for="{{rentTypeOptions}}" wx:key="key" class="left-item {{rentType === item.key ? 'left-item--active' : ''}}" data-key="{{item.key}}" bindtap="onRentTypeTap">{{item.name}}</view>
+      </view>
+      <scroll-view class="room-main" scroll-y enhanced show-scrollbar="{{false}}">
+        <view class="section-title">居室</view>
+        <view class="option-grid">
+          <view wx:for="{{roomCountOptions}}" wx:key="key" class="grid-option {{roomCount === item.key ? 'grid-option--active' : ''}}" data-key="{{item.key}}" bindtap="onRoomCountTap">{{item.name}}</view>
+        </view>
+        <view class="section-title">房型亮点</view>
+        <view class="option-grid">
+          <view wx:for="{{roomFeatureOptions}}" wx:key="key" class="grid-option {{item.selected ? 'grid-option--active' : ''}}" data-key="{{item.key}}" bindtap="toggleFeature">{{item.name}}</view>
+        </view>
+        <view class="section-title">朝向</view>
+        <view class="option-grid">
+          <view wx:for="{{orientationOptions}}" wx:key="key" class="grid-option {{orientation === item.key ? 'grid-option--active' : ''}}" data-key="{{item.key}}" bindtap="onOrientationTap">{{item.name}}</view>
+        </view>
+      </scroll-view>
+    </view>
+
+    <view wx:if="{{activeFilter === 'rent'}}" class="filter-content filter-content--simple">
+      <view class="price-grid">
+        <view wx:for="{{rentOptions}}" wx:key="key" class="price-option {{rentRange === item.key ? 'price-option--active' : ''}}" data-key="{{item.key}}" bindtap="onRentRangeTap">{{item.name}}</view>
+      </view>
+      <view class="rent-title">{{rentTitle}}</view>
+      <slider class="rent-slider" min="0" max="15000" step="500" value="{{rentMax}}" activeColor="#1f1f1f" backgroundColor="#eeeeee" block-size="22" block-color="#ffffff" bindchange="onRentSliderChange" />
+      <view class="rent-scale"><text>0</text><text>15000以上</text></view>
+    </view>
+
+    <view wx:if="{{activeFilter === 'more'}}" class="filter-content filter-content--room">
+      <view class="room-left">
+        <view wx:for="{{moreMenus}}" wx:key="key" class="left-item {{moreMenu === item.key ? 'left-item--active' : ''}}" data-key="{{item.key}}" bindtap="onMoreMenuTap">{{item.name}}</view>
+      </view>
+      <scroll-view class="room-main" scroll-y enhanced show-scrollbar="{{false}}">
+        <view wx:if="{{moreMenu === 'level'}}">
+          <view class="section-title">好房等级</view>
+          <view class="level-row">
+            <view wx:for="{{levelOptions}}" wx:key="key" class="level-card {{level === item.key ? 'level-card--active' : ''}}" data-key="{{item.key}}" bindtap="onLevelTap">
+              <view>{{item.name}}</view>
+              <text>{{item.desc}}</text>
+            </view>
+          </view>
+        </view>
+        <view wx:if="{{moreMenu === 'activity'}}">
+          <view class="section-title">优惠活动</view>
+          <view class="option-grid">
+            <view wx:for="{{activityOptions}}" wx:key="key" class="grid-option {{item.selected ? 'grid-option--active' : ''}}" data-key="{{item.key}}" bindtap="toggleActivity">{{item.name}}</view>
+          </view>
+        </view>
+        <view wx:if="{{moreMenu === 'floor'}}">
+          <view class="section-title">楼层</view>
+          <view class="option-grid">
+            <view wx:for="{{floorOptions}}" wx:key="key" class="grid-option {{floor === item.key ? 'grid-option--active' : ''}}" data-key="{{item.key}}" bindtap="onFloorTap">{{item.name}}</view>
+          </view>
+        </view>
+        <view wx:if="{{moreMenu === 'facility'}}">
+          <view class="section-title">设施</view>
+          <view class="option-grid">
+            <view wx:for="{{facilityOptions}}" wx:key="key" class="grid-option {{item.selected ? 'grid-option--active' : ''}}" data-key="{{item.key}}" bindtap="toggleFacility">{{item.name}}</view>
+          </view>
+        </view>
+      </scroll-view>
+    </view>
+
+    <view wx:if="{{activeFilter === 'sort'}}" class="filter-content filter-content--simple">
+      <view wx:for="{{sortOptions}}" wx:key="key" class="sort-item" data-key="{{item.key}}" bindtap="onSortTap">
+        <text>{{item.name}}</text>
+        <view class="radio {{sortKey === item.key ? 'radio--checked' : ''}}"></view>
+      </view>
+    </view>
+
+    <view wx:if="{{activeFilter === 'commute'}}" class="filter-content filter-content--simple">
+      <view class="commute-card commute-card--wide">
+        <view class="commute-card-title">{{commutePoint || displayPoint}}</view>
+        <view class="transport-row">
+          <view wx:for="{{transportOptions}}" wx:key="key" class="transport-choice {{transport === item.key ? 'transport-choice--active' : ''}}" data-key="{{item.key}}" bindtap="onTransportTap">{{item.name}}</view>
+        </view>
+        <slider class="panel-slider" min="15" max="60" step="5" value="{{minutes}}" activeColor="#a76435" backgroundColor="#eeeeee" block-size="22" block-color="#ffffff" bindchange="onMinuteChange" />
+        <view class="panel-add" bindtap="chooseCommutePoint">＋ 添加TA的通勤要求</view>
+      </view>
+    </view>
+
+    <view class="filter-actions">
+      <view class="reset-action" bindtap="resetFilters">重置</view>
+      <view class="view-action" bindtap="applyFilters">查看房源</view>
+    </view>
+  </view>
+
+  <view wx:if="{{toastText}}" class="toast-message">{{toastText}}</view>
+</view>

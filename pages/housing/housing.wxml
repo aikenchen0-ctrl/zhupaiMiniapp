@@ -1,0 +1,63 @@
+<view class="housing-page">
+  <view class="housing-shell" style="padding-top: {{statusBarHeight}}px;">
+    <housing-match-panel
+      housing-categories="{{housingCategories}}"
+      stay-options="{{stayOptions}}"
+      current-stay-index="{{currentStayIndex}}"
+      keyword="{{keyword}}"
+      bind:staychange="onStayChange"
+      bind:keywordinput="onKeywordInput"
+      bind:find="onFindTap"
+      bind:match="onMatchTap"
+    ></housing-match-panel>
+
+    <view class="tool-section">
+      <view wx:for="{{tools}}" wx:key="text" class="tool-item" data-type="{{item.type}}" bindtap="onToolTap">
+        <view class="tool-icon-wrap">
+          <image class="tool-icon" src="{{item.icon}}" mode="aspectFit"></image>
+        </view>
+        <view class="tool-text">{{item.text}}</view>
+      </view>
+    </view>
+
+    <view class="promise-card" bindtap="onSloganTap">
+      <view class="promise-text">1分钟生成找房，省去1天沟通</view>
+      <view class="promise-action">知道</view>
+      <view class="promise-arrow"></view>
+    </view>
+
+    <view class="bonus-card" bindtap="onBonusTap">
+      <view class="bonus-icon"></view>
+      <view class="bonus-text">有奖免费住</view>
+      <view class="bonus-action">去领奖</view>
+    </view>
+
+    <view class="rank-tabs">
+      <view
+        wx:for="{{rankTabs}}"
+        wx:key="key"
+        class="rank-tab {{currentRankIndex === index ? 'rank-tab--active' : ''}}"
+        data-index="{{index}}"
+        bindtap="onRankTap"
+      >
+        <image class="rank-icon" src="{{item.icon}}" mode="aspectFit"></image>
+        <text>{{item.name}}</text>
+      </view>
+    </view>
+
+    <view class="feed-preview">
+      <view class="preview-window">
+        <view class="curtain curtain--left"></view>
+        <view class="curtain curtain--right"></view>
+        <view class="sofa"></view>
+        <view class="plant"></view>
+      </view>
+      <view class="preview-info">
+        <view class="preview-title">{{activeRank.title}}</view>
+        <view class="preview-desc">{{activeRank.desc}}</view>
+      </view>
+    </view>
+  </view>
+
+  <view wx:if="{{toastText}}" class="toast-message">{{toastText}}</view>
+</view>

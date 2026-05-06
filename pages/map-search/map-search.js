@@ -39,6 +39,10 @@ Page({
     mapMarkers: [],
     viewMode: 'district',
     selectedDistrict: null,
+    selectedRent: '',
+    selectedLayout: '',
+    selectedMore: '',
+    currentLocation: null,
     visibleDistricts: districtSeed,
     visibleHouses: [],
     resultHint: '点击房源可查看模拟详情',
@@ -65,6 +69,24 @@ Page({
         return
       }
       this.showDistricts()
+      this.loadCurrentLocation()
+    })
+  },
+
+  loadCurrentLocation() {
+    if (!wx.getLocation) return
+    wx.getLocation({
+      type: 'gcj02',
+      success: (location) => {
+        this.setData({
+          currentLocation: location,
+          mapCenter: {
+            latitude: location.latitude,
+            longitude: location.longitude
+          }
+        })
+      },
+      fail: () => {}
     })
   },
 
@@ -122,6 +144,7 @@ Page({
     const houses = houseSeed
       .filter((item) => item.districtId === district.id)
       .filter((item) => this.matchHouse(item, query))
+      .filter((item) => this.matchFilters(item))
     this.setData({
       viewMode: 'houses',
       selectedDistrict: district,
@@ -136,6 +159,18 @@ Page({
   matchHouse(house, keyword) {
     if (!keyword) return true
     return [house.name, house.area, house.layout, house.distance].concat(house.tags).some((text) => text.indexOf(keyword) > -1)
+  },
+
+  matchFilters(house) {
+    if (this.data.selectedLayout && house.layout.indexOf(this.data.selectedLayout) === -1) return false
+    if (this.data.selectedMore && !house.tags.includes(this.data.selectedMore)) return false
+    if (this.data.selectedRent) {
+      const price = Number(String(house.price).replace(/[^0-9]/g, '')) || 0
+      if (this.data.selectedRent === '3000' && price > 3000) return false
+      if (this.data.selectedRent === '3000-5000' && (price < 3000 || price > 5000)) return false
+      if (this.data.selectedRent === '5000' && price < 5000) return false
+    }
+    return true
   },
 
   onKeywordInput(event) {
@@ -198,12 +233,81 @@ Page({
   },
 
   onFilterTap(event) {
-    const item = this.data.filters[event.currentTarget.dataset.index]
-    this.showToast(`${item.name}筛选开发中`)
+    const index = event.currentTarget.dataset.index
+    if (index === 0) {
+      this.chooseMapLocation()
+      return
+    }
+    if (index === 1) {
+      this.chooseRentFilter()
+      return
+    }
+    if (index === 2) {
+      this.chooseLayoutFilter()
+      return
+    }
+    this.chooseMoreFilter()
   },
 
-  toggleMapMode() {
-    this.showToast('已切换地图图层')
+  chooseMapLocation() {
+    if (!wx.chooseLocation) {
+      this.showToast('当前环境不支持选择地点')
+      return
+    }
+    wx.chooseLocation({
+      success: (location) => {
+        const keyword = location.name || location.address || ''
+        this.setData({
+          keyword,
+          currentLocation: location,
+          mapCenter: {
+            latitude: location.latitude,
+            longitude: location.longitude
+          },
+          mapScale: 13
+        })
+        this.applySearch(keyword)
+      },
+      fail: () => this.showToast('已取消选择地点')
+    })
+  },
+
+  chooseRentFilter() {
+    wx.showActionSheet({
+      itemList: ['不限', '3000元以下', '3000-5000元', '5000元以上'],
+      success: (res) => {
+        const values = ['', '3000', '3000-5000', '5000']
+        this.setData({ selectedRent: values[res.tapIndex] || '' }, () => this.refreshCurrentMapHouses())
+      }
+    })
+  },
+
+  chooseLayoutFilter() {
+    wx.showActionSheet({
+      itemList: ['不限', '整租', '合租', '一房', '两房'],
+      success: (res) => {
+        const values = ['', '整租', '合租', '一房', '两房']
+        this.setData({ selectedLayout: values[res.tapIndex] || '' }, () => this.refreshCurrentMapHouses())
+      }
+    })
+  },
+
+  chooseMoreFilter() {
+    wx.showActionSheet({
+      itemList: ['不限', '近地铁', '采光好', '可短租', '安静'],
+      success: (res) => {
+        const values = ['', '近地铁', '采光好', '可短租', '安静']
+        this.setData({ selectedMore: values[res.tapIndex] || '' }, () => this.refreshCurrentMapHouses())
+      }
+    })
+  },
+
+  refreshCurrentMapHouses() {
+    if (this.data.selectedDistrict) {
+      this.openDistrict(this.data.selectedDistrict, this.data.keyword)
+      return
+    }
+    this.showToast('筛选已生效')
   },
 
   resetDistricts() {
