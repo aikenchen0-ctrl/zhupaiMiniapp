@@ -25,6 +25,12 @@
   </view>
 
   <view wx:if="{{currentStep === 1}}" class="step-panel step-panel--calendar">
+    <picker mode="selector" range="{{yearOptions}}" range-key="text" value="{{selectedYearIndex}}" bindchange="onYearChange">
+      <view class="year-picker">
+        <text>入住年份</text>
+        <text>{{selectedYear}}年</text>
+      </view>
+    </picker>
     <view class="month-switch">
       <view class="month-switch-button" data-delta="-1" bindtap="onMonthSwitch">上一月</view>
       <view class="month-title">{{selectedMonth}}月 {{selectedYear}}</view>
@@ -37,8 +43,9 @@
       <view
         wx:for="{{calendarDays}}"
         wx:key="key"
-        class="calendar-day {{item.empty ? 'calendar-day--empty' : ''}} {{item.active ? 'calendar-day--active' : ''}}"
+        class="calendar-day {{item.empty ? 'calendar-day--empty' : ''}} {{item.disabled ? 'calendar-day--disabled' : ''}} {{item.active ? 'calendar-day--active' : ''}}"
         data-day="{{item.day}}"
+        data-disabled="{{item.disabled}}"
         bindtap="onCalendarDayTap"
       >{{item.day}}</view>
     </view>
@@ -49,7 +56,7 @@
     <view
       wx:for="{{transportOptions}}"
       wx:key="key"
-      class="transport-card {{selectedTransport === item.key ? 'transport-card--active' : ''}}"
+      class="transport-card {{selectedTransportMap[item.key] ? 'transport-card--active' : ''}}"
       data-key="{{item.key}}"
       bindtap="onTransportTap"
     >
@@ -68,43 +75,52 @@
     </view>
     <view class="address-card">
       <view class="address-title">您每天从哪里通勤?</view>
-      <view class="address-input-row">
+      <view class="address-input-row" bindtap="chooseCommuteLocation">
         <view class="address-search-icon"></view>
         <input
           class="address-input"
           value="{{commuteAddress}}"
-          placeholder="请输入工作地点、小区或地铁站"
+          placeholder="搜索工作地点、小区或地铁站"
           placeholder-class="input-placeholder"
           bindinput="onAddressInput"
         />
+        <view class="map-pick-button">地图</view>
+      </view>
+      <view class="location-action-row">
+        <view bindtap="chooseCommuteLocation">搜索地点</view>
+        <view bindtap="useCurrentLocation">定位当前位置</view>
+      </view>
+      <view class="commute-time-list">
+        <view
+          wx:for="{{selectedTransportDetails}}"
+          wx:key="key"
+          class="commute-time-item"
+        >
+          <view class="commute-time-label">期望住处{{item.name}}到这里时间</view>
+          <view class="time-stepper">
+            <view class="time-button" data-key="{{item.key}}" data-delta="-10" bindtap="onTimeAdjust">-</view>
+            <view class="time-value">{{item.minutes}}分钟</view>
+            <view class="time-button" data-key="{{item.key}}" data-delta="10" bindtap="onTimeAdjust">+</view>
+          </view>
+        </view>
       </view>
     </view>
   </view>
 
   <view wx:if="{{currentStep === 4}}" class="step-panel step-panel--budget">
-    <view class="budget-columns">
-      <view class="budget-column">
-        <view
-          wx:for="{{minBudgetOptions}}"
-          wx:key="value"
-          class="budget-item {{budgetMin === item.value ? 'budget-item--active' : ''}}"
-          data-type="min"
-          data-value="{{item.value}}"
-          bindtap="onBudgetTap"
-        >{{item.text}}</view>
-      </view>
-      <view class="budget-divider">到</view>
-      <view class="budget-column">
-        <view
-          wx:for="{{maxBudgetOptions}}"
-          wx:key="value"
-          class="budget-item {{budgetMax === item.value ? 'budget-item--active' : ''}}"
-          data-type="max"
-          data-value="{{item.value}}"
-          bindtap="onBudgetTap"
-        >{{item.text}}</view>
-      </view>
-    </view>
+    <picker-view
+      class="budget-picker"
+      value="{{budgetPickerValue}}"
+      indicator-class="budget-picker-indicator"
+      bindchange="onBudgetPickerChange"
+    >
+      <picker-view-column>
+        <view wx:for="{{budgetOptions}}" wx:key="value" class="budget-picker-item">{{item.text}}</view>
+      </picker-view-column>
+      <picker-view-column>
+        <view wx:for="{{budgetOptions}}" wx:key="value" class="budget-picker-item">{{item.text}}</view>
+      </picker-view-column>
+    </picker-view>
     <view class="budget-active-line">
       <text>{{budgetMin}}</text>
       <text>到</text>
@@ -115,8 +131,29 @@
   <view wx:if="{{currentStep === 5}}" class="step-panel step-panel--preference">
     <view class="preference-search">
       <view class="address-search-icon"></view>
-      <text>输入设施、商圈或地标</text>
+      <input
+        value="{{nearbyKeyword}}"
+        placeholder="输入设施、商圈或地标"
+        placeholder-class="input-placeholder"
+        bindinput="onNearbyInput"
+      />
     </view>
+    <scroll-view class="nearby-list" scroll-y enhanced show-scrollbar="{{false}}">
+      <view
+        wx:for="{{filteredNearbyOptions}}"
+        wx:key="key"
+        class="nearby-item {{selectedPreferenceMap[item.key] ? 'nearby-item--active' : ''}}"
+        data-key="{{item.key}}"
+        bindtap="onPreferenceTap"
+      >
+        <view>
+          <view class="nearby-name">{{item.name}}</view>
+          <view class="nearby-meta">{{item.type}} · {{item.distance}} · {{item.address}}</view>
+        </view>
+        <view class="nearby-check">{{selectedPreferenceMap[item.key] ? '已选' : '选择'}}</view>
+      </view>
+      <view wx:if="{{!filteredNearbyOptions.length}}" class="nearby-empty">没有找到匹配设施</view>
+    </scroll-view>
     <view class="preference-grid">
       <view
         wx:for="{{preferenceOptions}}"
