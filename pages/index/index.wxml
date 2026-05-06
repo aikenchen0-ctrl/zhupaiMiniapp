@@ -30,6 +30,7 @@
       current-stay-index="{{currentStayIndex}}"
       keyword="{{matchKeyword}}"
       bind:staychange="onStayChange"
+      bind:categorytap="onHousingCategoryTap"
       bind:keywordinput="onMatchKeywordInput"
       bind:find="onFindTap"
       bind:match="onMatchTap"

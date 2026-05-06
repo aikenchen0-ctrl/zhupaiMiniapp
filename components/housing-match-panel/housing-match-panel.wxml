@@ -1,6 +1,6 @@
 <view class="housing-match-panel">
   <view class="housing-row">
-    <view wx:for="{{housingCategories}}" wx:key="text" class="housing-item">
+    <view wx:for="{{housingCategories}}" wx:key="text" class="housing-item" data-type="{{item.type}}" bindtap="onHousingCategoryTap">
       <image class="housing-icon" src="{{item.icon}}" mode="aspectFit"></image>
       <view class="housing-label">{{item.text}}</view>
     </view>

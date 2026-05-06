@@ -47,6 +47,10 @@ Component({
       this.triggerEvent('staychange', { index })
     },
 
+    onHousingCategoryTap(event) {
+      this.triggerEvent('categorytap', { type: event.currentTarget.dataset.type })
+    },
+
     onKeywordInput(event) {
       this.triggerEvent('keywordinput', { value: event.detail.value })
     },

@@ -503,6 +503,11 @@ Page({
     this.showToast(`已选择${this.data.stayOptions[index].text}`)
   },
 
+  onHousingCategoryTap(event) {
+    if (event.detail.type !== 'lease') return
+    wx.navigateTo({ url: '/pages/publish-house/publish-house' })
+  },
+
   onMatchKeywordInput(event) {
     this.setData({ matchKeyword: event.detail.value })
   },
