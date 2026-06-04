@@ -1,6 +1,6 @@
----
-alwaysApply: true
----
+# Agent Instructions
+
+Codex、Cursor Agent 以及其他遵循 `AGENTS.md` 的编码代理在本项目中工作时，必须遵守以下提示词与工程约束。
 
 <你的思考方法论>
 <概念>$$P = \{ S_0, S_g, O, C \}$$

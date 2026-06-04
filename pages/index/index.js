@@ -355,8 +355,17 @@ Page({
       })
       return
     }
+    if (key === 'nearby') {
+      this.setData({ currentMainNav: index })
+      this.showToast(`${name}频道已切换`)
+      return
+    }
     this.setData({ currentMainNav: index })
     this.showToast(`${name}频道已切换`)
+  },
+
+  onCityTabTap() {
+    wx.navigateTo({ url: '/pages/local-city/local-city' })
   },
 
   onFeedChange(event) {

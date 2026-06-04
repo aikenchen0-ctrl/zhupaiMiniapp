@@ -6,7 +6,8 @@
     "pages/publish-house/publish-house",
     "pages/commute-setting/commute-setting",
     "pages/search-result/search-result",
-    "pages/housing/housing"
+    "pages/housing/housing",
+    "pages/local-city/local-city"
   ],
   "window": {
     "navigationBarTextStyle": "black",
