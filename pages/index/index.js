@@ -603,8 +603,10 @@ Page({
   },
 
   onHousingCategoryTap(event) {
-    if (event.detail.type !== 'lease') return
-    wx.navigateTo({ url: '/pages/publish-house/publish-house' })
+    const { type } = event.detail || {}
+    if (type === 'lease') {
+      wx.navigateTo({ url: '/pages/publish-house/publish-house' })
+    }
   },
 
   onMatchKeywordInput(event) {

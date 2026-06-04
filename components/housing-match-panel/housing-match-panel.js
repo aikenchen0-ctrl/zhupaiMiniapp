@@ -47,8 +47,9 @@ Component({
       this.triggerEvent('staychange', { index })
     },
 
-    onHousingCategoryTap(event) {
-      this.triggerEvent('categorytap', { type: event.currentTarget.dataset.type })
+    onCategoryTap(event) {
+      const { type } = event.currentTarget.dataset
+      this.triggerEvent('categorytap', { type })
     },
 
     onKeywordInput(event) {

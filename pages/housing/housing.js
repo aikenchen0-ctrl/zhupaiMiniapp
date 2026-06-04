@@ -81,6 +81,13 @@ Page({
     this.setData({ currentStayIndex: event.detail.index })
   },
 
+  onHousingCategoryTap(event) {
+    const { type } = event.detail || {}
+    if (type === 'lease') {
+      wx.navigateTo({ url: '/pages/publish-house/publish-house' })
+    }
+  },
+
   onKeywordInput(event) {
     this.setData({ keyword: event.detail.value })
   },
